@@ -1,0 +1,11 @@
+{
+  "buildCommand": "npx expo export -p web",
+  "outputDirectory": "dist",
+  "framework": null,
+  "rewrites": [
+    { "source": "/oauth/:path*", "destination": "/api/proxy" },
+    { "source": "/api/:path*", "destination": "/api/proxy" },
+    { "source": "/health", "destination": "/api/proxy" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
