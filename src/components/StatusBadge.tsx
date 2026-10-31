@@ -1,95 +1,68 @@
 import React from 'react';
 import { View, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
-import { BorderRadius, FontSizes, Fonts, Spacing } from '../constants/theme';
+import { fonts, fontSizes, spacing, borderRadius } from '../constants/theme';
 
 export interface StatusBadgeProps {
   label: string;
   color: string;
-  size?: 'sm' | 'md';
+  size?: 'sm' | 'md' | 'lg' | string;
   style?: ViewStyle;
+  textStyle?: TextStyle;
+  icon?: React.ReactNode;
 }
 
 /**
- * Converts a hex color string to rgba with given opacity.
+ * StatusBadge — A subtle, minimal status indicator.
+ * Uses alpha 0.08 background tint for a quiet, editorial feel.
  */
-function getSemiTransparentColor(color: string, opacity: number = 0.2): string {
-  if (color.startsWith('#')) {
-    const hex = color.replace('#', '');
-    let r = 0;
-    let g = 0;
-    let b = 0;
-
-    if (hex.length === 3) {
-      r = parseInt(hex[0] + hex[0], 16);
-      g = parseInt(hex[1] + hex[1], 16);
-      b = parseInt(hex[2] + hex[2], 16);
-    } else if (hex.length >= 6) {
-      r = parseInt(hex.substring(0, 2), 16);
-      g = parseInt(hex.substring(2, 4), 16);
-      b = parseInt(hex.substring(4, 6), 16);
-    }
-    return `rgba(${r}, ${g}, ${b}, ${opacity})`;
-  }
-  return color;
-}
-
-export const StatusBadge: React.FC<StatusBadgeProps> = ({
+const StatusBadge: React.FC<StatusBadgeProps> = ({
   label,
   color,
-  size = 'md',
   style,
+  textStyle,
+  icon,
 }) => {
-  const isSmall = size === 'sm';
-  const backgroundColor = getSemiTransparentColor(color, 0.2);
+  // Parse hex color to rgba with very low alpha for background
+  const bgColor = hexToRgba(color, 0.08);
 
   return (
-    <View
-      style={[
-        styles.badge,
-        isSmall ? styles.badgeSm : styles.badgeMd,
-        { backgroundColor },
-        style,
-      ]}
-    >
-      <Text
-        style={[
-          styles.text,
-          isSmall ? styles.textSm : styles.textMd,
-          { color },
-        ]}
-        numberOfLines={1}
-      >
-        {label}
-      </Text>
+    <View style={[styles.container, { backgroundColor: bgColor }, style]}>
+      {icon && <View style={styles.iconWrapper}>{icon}</View>}
+      <Text style={[styles.label, { color }, textStyle]}>{label}</Text>
     </View>
   );
 };
 
+/**
+ * Convert a hex color string to rgba with a given alpha.
+ */
+function hexToRgba(hex: string, alpha: number): string {
+  const cleaned = hex.replace('#', '');
+  const r = parseInt(cleaned.substring(0, 2), 16);
+  const g = parseInt(cleaned.substring(2, 4), 16);
+  const b = parseInt(cleaned.substring(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
 const styles = StyleSheet.create({
-  badge: {
-    borderRadius: BorderRadius.full,
-    alignSelf: 'flex-start',
+  container: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    alignSelf: 'flex-start',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.sm,
   },
-  badgeSm: {
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 3,
+  iconWrapper: {
+    marginRight: spacing.xs,
   },
-  badgeMd: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: 5,
-  },
-  text: {
-    fontFamily: Fonts.medium,
-    textAlign: 'center',
-  },
-  textSm: {
-    fontSize: FontSizes.xs,
-    lineHeight: FontSizes.xs * 1.3,
-  },
-  textMd: {
-    fontSize: FontSizes.sm,
-    lineHeight: FontSizes.sm * 1.3,
+  label: {
+    fontFamily: fonts.medium,
+    fontSize: fontSizes.xs,
+    letterSpacing: 0.1,
+    lineHeight: fontSizes.xs * 1.4,
   },
 });
+
+export { StatusBadge };
+export default StatusBadge;

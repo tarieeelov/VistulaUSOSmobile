@@ -16,9 +16,7 @@ import {
   Sun,
   Trash2,
   LogOut,
-  Sparkles,
   ChevronRight,
-  ShieldCheck,
 } from 'lucide-react-native';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { useTheme } from '../../src/contexts/ThemeContext';
@@ -32,7 +30,6 @@ import {
   BorderRadius,
   FontSizes,
   Fonts,
-  Shadows,
   Spacing,
 } from '../../src/constants/theme';
 
@@ -132,20 +129,33 @@ export default function ProfileScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        {/* Top Editorial Header */}
+        <View style={styles.header}>
+          <Text style={[styles.screenTitle, { color: colors.text }]}>Profile</Text>
+          <Text style={[styles.screenSubtitle, { color: colors.textSecondary }]}>
+            Student identity & portal settings
+          </Text>
+        </View>
+
         {/* Demo Mode Notice */}
         {isDemo && (
           <View
             style={[
               styles.demoBanner,
               {
-                backgroundColor: colors.accentMuted,
-                borderColor: `${colors.accent}44`,
+                backgroundColor: colors.surfaceElevated,
+                borderColor: colors.border,
               },
             ]}
           >
-            <Sparkles size={16} color={colors.accent} />
-            <Text style={[styles.demoBannerText, { color: colors.accent }]}>
-              Demo Mode Active — Showing sample student data
+            <View
+              style={[
+                styles.demoDot,
+                { backgroundColor: colors.primary },
+              ]}
+            />
+            <Text style={[styles.demoBannerText, { color: colors.textSecondary }]}>
+              Demo Mode Active — Displaying sample student credentials
             </Text>
           </View>
         )}
@@ -173,7 +183,7 @@ export default function ProfileScreen() {
         {/* Quick Links Section */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Quick Links
+            University Portals
           </Text>
           <QuickLinks colors={colors} />
         </View>
@@ -189,7 +199,7 @@ export default function ProfileScreen() {
               styles.settingsCard,
               {
                 backgroundColor: colors.surface,
-                borderColor: colors.borderLight,
+                borderColor: colors.border,
               },
             ]}
           >
@@ -199,26 +209,26 @@ export default function ProfileScreen() {
                 <View
                   style={[
                     styles.settingIconContainer,
-                    { backgroundColor: colors.primaryMuted },
+                    { backgroundColor: colors.surfaceHighlight },
                   ]}
                 >
                   {isDark ? (
-                    <Moon size={18} color={colors.primary} />
+                    <Moon size={16} color={colors.textSecondary} strokeWidth={1.8} />
                   ) : (
-                    <Sun size={18} color={colors.primary} />
+                    <Sun size={16} color={colors.textSecondary} strokeWidth={1.8} />
                   )}
                 </View>
                 <View>
                   <Text style={[styles.settingLabel, { color: colors.text }]}>
-                    Dark Mode
+                    Dark Theme
                   </Text>
                   <Text
                     style={[
                       styles.settingSubLabel,
-                      { color: colors.textSecondary },
+                      { color: colors.textTertiary },
                     ]}
                   >
-                    {isDark ? 'Dark theme active' : 'Light theme active'}
+                    {isDark ? 'Graphite dark mode' : 'Minimal clean white'}
                   </Text>
                 </View>
               </View>
@@ -249,10 +259,10 @@ export default function ProfileScreen() {
                 <View
                   style={[
                     styles.settingIconContainer,
-                    { backgroundColor: colors.warningMuted },
+                    { backgroundColor: colors.surfaceHighlight },
                   ]}
                 >
-                  <Trash2 size={18} color={colors.warning} />
+                  <Trash2 size={16} color={colors.textSecondary} strokeWidth={1.8} />
                 </View>
                 <View>
                   <Text style={[styles.settingLabel, { color: colors.text }]}>
@@ -261,18 +271,18 @@ export default function ProfileScreen() {
                   <Text
                     style={[
                       styles.settingSubLabel,
-                      { color: colors.textSecondary },
+                      { color: colors.textTertiary },
                     ]}
                   >
-                    Free stored timetable and grade cache
+                    Free cached timetable & grade data
                   </Text>
                 </View>
               </View>
 
               {isClearingCache ? (
-                <ActivityIndicator size="small" color={colors.warning} />
+                <ActivityIndicator size="small" color={colors.textSecondary} />
               ) : (
-                <ChevronRight size={18} color={colors.textTertiary} />
+                <ChevronRight size={16} color={colors.textTertiary} strokeWidth={1.8} />
               )}
             </TouchableOpacity>
           </View>
@@ -284,14 +294,14 @@ export default function ProfileScreen() {
             style={[
               styles.logoutButton,
               {
-                borderColor: `${colors.danger}66`,
-                backgroundColor: colors.dangerMuted,
+                borderColor: colors.border,
+                backgroundColor: colors.surface,
               },
             ]}
             onPress={handleLogout}
             activeOpacity={0.8}
           >
-            <LogOut size={18} color={colors.danger} />
+            <LogOut size={16} color={colors.danger} strokeWidth={1.8} />
             <Text style={[styles.logoutText, { color: colors.danger }]}>
               Log Out
             </Text>
@@ -300,9 +310,8 @@ export default function ProfileScreen() {
 
         {/* Footer info */}
         <View style={styles.footer}>
-          <ShieldCheck size={14} color={colors.textTertiary} />
           <Text style={[styles.footerText, { color: colors.textTertiary }]}>
-            Vistula USOS • v1.0.0
+            Vistula USOS · Version 1.0.0
           </Text>
         </View>
       </ScrollView>
@@ -319,18 +328,37 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.sm,
     paddingBottom: Spacing.xxxl,
   },
+  header: {
+    paddingBottom: Spacing.sm + 2,
+  },
+  screenTitle: {
+    fontFamily: Fonts.bold,
+    fontSize: FontSizes.xxl,
+    letterSpacing: -0.6,
+  },
+  screenSubtitle: {
+    fontFamily: Fonts.regular,
+    fontSize: FontSizes.xs,
+    letterSpacing: 0.1,
+    marginTop: 2,
+  },
   demoBanner: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.lg,
+    borderRadius: BorderRadius.md,
     borderWidth: 1,
     marginBottom: Spacing.md,
   },
+  demoDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
   demoBannerText: {
-    fontFamily: Fonts.medium,
+    fontFamily: Fonts.regular,
     fontSize: FontSizes.xs,
     flex: 1,
   },
@@ -342,7 +370,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: Spacing.sm,
     minHeight: 180,
-    ...Shadows.sm,
   },
   loadingText: {
     fontFamily: Fonts.medium,
@@ -352,15 +379,14 @@ const styles = StyleSheet.create({
     marginTop: Spacing.xl,
   },
   sectionTitle: {
-    fontFamily: Fonts.bold,
-    fontSize: FontSizes.md,
-    marginBottom: Spacing.md,
+    fontFamily: Fonts.semiBold,
+    fontSize: FontSizes.sm,
+    marginBottom: Spacing.sm + 2,
     letterSpacing: -0.2,
   },
   settingsCard: {
     borderRadius: BorderRadius.lg,
     borderWidth: 1,
-    ...Shadows.sm,
     overflow: 'hidden',
   },
   settingRow: {
@@ -377,47 +403,48 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   settingIconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 32,
+    height: 32,
+    borderRadius: BorderRadius.sm,
     alignItems: 'center',
     justifyContent: 'center',
   },
   settingLabel: {
-    fontFamily: Fonts.semiBold,
-    fontSize: FontSizes.base,
+    fontFamily: Fonts.medium,
+    fontSize: FontSizes.sm,
+    letterSpacing: -0.2,
   },
   settingSubLabel: {
     fontFamily: Fonts.regular,
     fontSize: FontSizes.xs,
-    marginTop: 2,
+    marginTop: 1,
   },
   rowDivider: {
-    height: 1,
-    marginLeft: 64,
+    height: StyleSheet.hairlineWidth,
+    marginLeft: 56,
   },
   logoutButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: Spacing.sm,
-    height: 50,
+    gap: Spacing.xs + 2,
+    height: 48,
     borderRadius: BorderRadius.lg,
     borderWidth: 1,
   },
   logoutText: {
-    fontFamily: Fonts.bold,
-    fontSize: FontSizes.base,
+    fontFamily: Fonts.medium,
+    fontSize: FontSizes.sm,
+    letterSpacing: 0.1,
   },
   footer: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 4,
     marginTop: Spacing.xxl,
   },
   footerText: {
     fontFamily: Fonts.regular,
-    fontSize: FontSizes.xs,
+    fontSize: 11,
+    letterSpacing: 0.3,
   },
 });

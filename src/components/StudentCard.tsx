@@ -1,22 +1,24 @@
 import React, { useState } from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
-import { GraduationCap, ShieldCheck } from 'lucide-react-native';
 import { UserProfile } from '../types/usos';
 import {
   BorderRadius,
   FontSizes,
   Fonts,
-  Shadows,
   Spacing,
   ThemeColors,
 } from '../constants/theme';
-import { StatusBadge } from './StatusBadge';
+import StatusBadge from './StatusBadge';
 
 export interface StudentCardProps {
   profile: UserProfile;
   colors: ThemeColors;
 }
 
+/**
+ * StudentCard — An editorial Bento Box digital student ID card.
+ * Minimalist, monochrome elegance with subtle accent details.
+ */
 export const StudentCard: React.FC<StudentCardProps> = ({ profile, colors }) => {
   const [imageError, setImageError] = useState(false);
 
@@ -31,9 +33,9 @@ export const StudentCard: React.FC<StudentCardProps> = ({ profile, colors }) => 
     .toUpperCase();
 
   const fullName = `${profile.first_name || ''} ${profile.last_name || ''}`.trim();
-  const studentNumber = profile.student_number || 'N/A';
+  const studentNumber = profile.student_number || '—';
 
-  // Determine student status
+  // Student status determination
   const isActive = profile.student_status === 1;
   const isGraduated = profile.student_status === 2;
   const statusLabel = isActive
@@ -44,7 +46,7 @@ export const StudentCard: React.FC<StudentCardProps> = ({ profile, colors }) => 
   const statusColor = isActive
     ? colors.success
     : isGraduated
-    ? colors.accent
+    ? colors.primary
     : colors.danger;
 
   return (
@@ -57,20 +59,19 @@ export const StudentCard: React.FC<StudentCardProps> = ({ profile, colors }) => 
         },
       ]}
     >
-      {/* Decorative background glow accents */}
-      <View
-        style={[
-          styles.decorativeGlow,
-          {
-            backgroundColor: colors.primary,
-          },
-        ]}
-      />
-
-      {/* Card Header: Institution Branding */}
+      {/* Header: Clean Editorial Branding */}
       <View style={styles.cardHeader}>
-        <View style={styles.brandingGroup}>
-          <GraduationCap size={20} color={colors.primary} />
+        <View style={styles.brandRow}>
+          <View
+            style={[
+              styles.brandMark,
+              { backgroundColor: colors.primaryMuted },
+            ]}
+          >
+            <Text style={[styles.brandMarkText, { color: colors.primary }]}>
+              VU
+            </Text>
+          </View>
           <View>
             <Text style={[styles.institutionName, { color: colors.text }]}>
               VISTULA UNIVERSITY
@@ -78,15 +79,15 @@ export const StudentCard: React.FC<StudentCardProps> = ({ profile, colors }) => 
             <Text
               style={[styles.institutionSub, { color: colors.textTertiary }]}
             >
-              STUDENT ID CARD
+              STUDENT IDENTITY
             </Text>
           </View>
         </View>
 
-        <ShieldCheck size={20} color={colors.accent} />
+        <StatusBadge label={statusLabel} color={statusColor} />
       </View>
 
-      {/* Main Content: Avatar + Student Information */}
+      {/* Body: Photo + Student Details */}
       <View style={styles.body}>
         {photoUri && !imageError ? (
           <Image
@@ -99,12 +100,12 @@ export const StudentCard: React.FC<StudentCardProps> = ({ profile, colors }) => 
             style={[
               styles.avatarPlaceholder,
               {
-                backgroundColor: colors.primaryMuted,
-                borderColor: colors.primary,
+                backgroundColor: colors.surfaceHighlight,
+                borderColor: colors.border,
               },
             ]}
           >
-            <Text style={[styles.initialsText, { color: colors.primary }]}>
+            <Text style={[styles.initialsText, { color: colors.textSecondary }]}>
               {initials || 'VU'}
             </Text>
           </View>
@@ -120,18 +121,18 @@ export const StudentCard: React.FC<StudentCardProps> = ({ profile, colors }) => 
 
           <View style={styles.numberRow}>
             <Text
-              style={[styles.numberLabel, { color: colors.textSecondary }]}
+              style={[styles.numberLabel, { color: colors.textTertiary }]}
             >
-              Student ID:
+              ID NUMBER
             </Text>
-            <Text style={[styles.numberValue, { color: colors.text }]}>
+            <Text style={[styles.numberValue, { color: colors.textSecondary }]}>
               {studentNumber}
             </Text>
           </View>
         </View>
       </View>
 
-      {/* Card Footer: Status Badge + Verification */}
+      {/* Footer: Editorial meta line */}
       <View
         style={[
           styles.cardFooter,
@@ -140,9 +141,11 @@ export const StudentCard: React.FC<StudentCardProps> = ({ profile, colors }) => 
           },
         ]}
       >
-        <StatusBadge label={statusLabel} color={statusColor} size="sm" />
-        <Text style={[styles.verifiedText, { color: colors.textSecondary }]}>
-          Verified by USOS
+        <Text style={[styles.footerText, { color: colors.textTertiary }]}>
+          Verified by USOS API
+        </Text>
+        <Text style={[styles.footerMeta, { color: colors.textTertiary }]}>
+          OFFICIAL RECORD
         </Text>
       </View>
     </View>
@@ -154,18 +157,7 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.xl,
     borderWidth: 1,
     padding: Spacing.lg,
-    position: 'relative',
     overflow: 'hidden',
-    ...Shadows.lg,
-  },
-  decorativeGlow: {
-    position: 'absolute',
-    top: -40,
-    right: -40,
-    width: 140,
-    height: 140,
-    borderRadius: 70,
-    opacity: 0.12,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -173,78 +165,101 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: Spacing.lg,
   },
-  brandingGroup: {
+  brandRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.sm,
+    gap: Spacing.sm + 2,
+  },
+  brandMark: {
+    width: 32,
+    height: 32,
+    borderRadius: BorderRadius.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  brandMarkText: {
+    fontFamily: Fonts.bold,
+    fontSize: FontSizes.xs,
+    letterSpacing: 0.5,
   },
   institutionName: {
-    fontFamily: Fonts.bold,
-    fontSize: FontSizes.sm,
+    fontFamily: Fonts.semiBold,
+    fontSize: FontSizes.xs + 1,
     letterSpacing: 0.8,
   },
   institutionSub: {
-    fontFamily: Fonts.medium,
-    fontSize: FontSizes.xs,
-    letterSpacing: 0.5,
+    fontFamily: Fonts.regular,
+    fontSize: 9,
+    letterSpacing: 1.2,
     marginTop: 1,
   },
   body: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.base,
     marginBottom: Spacing.lg,
+    gap: Spacing.md,
   },
   avatar: {
-    width: 68,
-    height: 68,
-    borderRadius: 34,
-    borderWidth: 2,
+    width: 60,
+    height: 60,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
   },
   avatarPlaceholder: {
-    width: 68,
-    height: 68,
-    borderRadius: 34,
-    borderWidth: 2,
+    width: 60,
+    height: 60,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   initialsText: {
-    fontFamily: Fonts.bold,
-    fontSize: FontSizes.lg,
+    fontFamily: Fonts.semiBold,
+    fontSize: FontSizes.base,
+    letterSpacing: 0.5,
   },
   infoCol: {
     flex: 1,
+    justifyContent: 'center',
   },
   studentName: {
-    fontFamily: Fonts.bold,
-    fontSize: FontSizes.lg,
-    lineHeight: FontSizes.lg * 1.25,
+    fontFamily: Fonts.semiBold,
+    fontSize: FontSizes.md,
+    lineHeight: FontSizes.md * 1.3,
+    letterSpacing: -0.3,
     marginBottom: Spacing.xs,
   },
   numberRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.xs,
+    alignItems: 'baseline',
+    gap: Spacing.xs + 2,
   },
   numberLabel: {
-    fontFamily: Fonts.regular,
-    fontSize: FontSizes.xs,
+    fontFamily: Fonts.medium,
+    fontSize: 10,
+    letterSpacing: 0.8,
   },
   numberValue: {
-    fontFamily: Fonts.semiBold,
+    fontFamily: Fonts.medium,
     fontSize: FontSizes.sm,
-    letterSpacing: 0.5,
+    letterSpacing: 0.3,
   },
   cardFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    borderTopWidth: 1,
     paddingTop: Spacing.md,
+    borderTopWidth: StyleSheet.hairlineWidth,
   },
-  verifiedText: {
+  footerText: {
     fontFamily: Fonts.regular,
-    fontSize: FontSizes.xs,
+    fontSize: 11,
+  },
+  footerMeta: {
+    fontFamily: Fonts.medium,
+    fontSize: 9,
+    letterSpacing: 1.2,
   },
 });
+
+export default StudentCard;

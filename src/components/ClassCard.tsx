@@ -1,79 +1,109 @@
-import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated } from 'react-native';
-import { MapPin, Clock, User } from 'lucide-react-native';
+import React, { useMemo } from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import { MapPin, Clock } from 'lucide-react-native';
 import { ProcessedClass, resolveL } from '../types/usos';
 import {
-  BorderRadius,
-  FontSizes,
-  Fonts,
-  Shadows,
-  Spacing,
   ThemeColors,
+  DarkColors,
   getClassTypeColor,
+  Fonts,
+  FontSizes,
+  Spacing,
+  BorderRadius,
 } from '../constants/theme';
-import { StatusBadge } from './StatusBadge';
+import StatusBadge from './StatusBadge';
 
 export interface ClassCardProps {
   item: ProcessedClass;
-  colors: ThemeColors;
+  colors?: ThemeColors;
 }
 
+/**
+ * Extracts a readable time string (HH:MM) from a date/time string.
+ */
 function extractTime(timeStr: string): string {
-  if (!timeStr) return '';
-  const parts = timeStr.trim().split(' ');
-  const timePart = parts.length > 1 ? parts[1] : parts[0];
-  return timePart.slice(0, 5);
+  try {
+    if (!timeStr) return '--:--';
+    // If it's "2026-10-22 08:00:00" or ISO format
+    const parts = timeStr.split(' ');
+    if (parts.length > 1 && parts[1].includes(':')) {
+      const timeParts = parts[1].split(':');
+      return `${timeParts[0]}:${timeParts[1]}`;
+    }
+    const date = new Date(timeStr);
+    if (!isNaN(date.getTime())) {
+      const hours = date.getHours().toString().padStart(2, '0');
+      const minutes = date.getMinutes().toString().padStart(2, '0');
+      return `${hours}:${minutes}`;
+    }
+    return timeStr.slice(0, 5);
+  } catch {
+    return '--:--';
+  }
 }
 
-export const ClassCard: React.FC<ClassCardProps> = ({ item, colors }) => {
-  const pulseAnim = useRef(new Animated.Value(1)).current;
+/**
+ * Convert a hex color string to rgba with a given alpha.
+ */
+function hexToRgba(hex: string, alpha: number): string {
+  if (!hex || !hex.startsWith('#')) return `rgba(107, 138, 255, ${alpha})`;
+  const cleaned = hex.replace('#', '');
+  const r = parseInt(cleaned.substring(0, 2), 16) || 0;
+  const g = parseInt(cleaned.substring(2, 4), 16) || 0;
+  const b = parseInt(cleaned.substring(4, 6), 16) || 0;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
 
-  const isActive = item.status === 'active';
-  const isUpcoming = item.status === 'upcoming';
-  const isPast = item.status === 'past';
-
-  // Pulse animation for active classes
-  useEffect(() => {
-    if (isActive) {
-      const animation = Animated.loop(
-        Animated.sequence([
-          Animated.timing(pulseAnim, {
-            toValue: 0.45,
-            duration: 850,
-            useNativeDriver: true,
-          }),
-          Animated.timing(pulseAnim, {
-            toValue: 1,
-            duration: 850,
-            useNativeDriver: true,
-          }),
-        ])
-      );
-      animation.start();
-      return () => animation.stop();
-    } else {
-      pulseAnim.setValue(1);
-    }
-  }, [isActive, pulseAnim]);
+/**
+ * ClassCard — A clean, editorial-style class schedule card.
+ *
+ * - Active classes: subtle 3px left accent border + small dot indicator
+ * - Past classes: subdued opacity (0.5)
+ * - Bento box aesthetic: generous padding, clean border, refined typography
+ */
+export const ClassCard: React.FC<ClassCardProps> = ({ item, colors = DarkColors }) => {
+  const courseName = resolveL(item.name) || 'Unknown Course';
+  const classType = resolveL(item.classtype_name) || 'Class';
+  const typeColor = getClassTypeColor(classType, colors);
 
   const startTime = extractTime(item.start_time);
   const endTime = extractTime(item.end_time);
-  const timeRange = `${startTime} - ${endTime}`;
 
-  const courseName = resolveL(item.name) || 'Untitled Class';
-  const classType = resolveL(item.classtype_name);
-  const classColor = getClassTypeColor(classType, colors);
+  const isPast = item.status === 'past';
+  const isActive = item.status === 'active';
 
-  const building = resolveL(item.building_name);
-  const room = item.room_number;
-  const locationText = [building, room ? `Room ${room}` : null]
-    .filter(Boolean)
-    .join(', ');
+  // Build location string
+  const locationParts: string[] = [];
+  if (item.room_number) {
+    locationParts.push(`Room ${item.room_number}`);
+  }
+  if (item.building_name) {
+    const buildingName = resolveL(item.building_name);
+    if (buildingName) {
+      locationParts.push(buildingName);
+    }
+  }
+  const locationString = locationParts.join(' · ');
 
-  const progressPercent = Math.min(
-    Math.max(Math.round((item.progress ?? 0) * 100), 0),
-    100
-  );
+  // Lecturer name
+  const lecturerName = item.lecturer_name?.trim() || null;
+
+  // Progress calculation for active classes
+  const progress = useMemo(() => {
+    if (!isActive) return 0;
+    if (typeof item.progress === 'number') return item.progress;
+    try {
+      const now = Date.now();
+      const start = new Date(item.start_time.replace(' ', 'T')).getTime();
+      const end = new Date(item.end_time.replace(' ', 'T')).getTime();
+      const total = end - start;
+      if (total <= 0) return 0;
+      const elapsed = now - start;
+      return Math.min(Math.max(elapsed / total, 0), 1);
+    } catch {
+      return 0.5;
+    }
+  }, [isActive, item.progress, item.start_time, item.end_time]);
 
   return (
     <View
@@ -81,100 +111,92 @@ export const ClassCard: React.FC<ClassCardProps> = ({ item, colors }) => {
         styles.card,
         {
           backgroundColor: colors.surface,
-          borderColor: colors.borderLight,
-          opacity: isPast ? 0.6 : 1,
+          borderColor: colors.border,
         },
         isActive && {
-          borderLeftWidth: 4,
-          borderLeftColor: colors.accent,
+          borderLeftColor: typeColor,
+          borderLeftWidth: 3,
         },
+        isPast && { opacity: 0.5 },
       ]}
     >
-      {/* Top Header: Time range + Badges */}
-      <View style={styles.topRow}>
+      {/* Header: Type badge + Time */}
+      <View style={styles.header}>
+        <StatusBadge label={classType} color={typeColor} />
         <View style={styles.timeContainer}>
-          <Clock size={14} color={colors.textSecondary} />
+          <Clock
+            size={13}
+            color={colors.textTertiary}
+            strokeWidth={1.8}
+            style={styles.timeIcon}
+          />
           <Text style={[styles.timeText, { color: colors.textSecondary }]}>
-            {timeRange}
+            {startTime} – {endTime}
           </Text>
-        </View>
-
-        <View style={styles.badgeGroup}>
-          {classType ? (
-            <StatusBadge label={classType} color={classColor} size="sm" />
-          ) : null}
-
-          {isActive && (
-            <Animated.View style={{ opacity: pulseAnim }}>
-              <StatusBadge
-                label="Happening Now"
-                color={colors.accent}
-                size="sm"
-              />
-            </Animated.View>
-          )}
-
-          {isUpcoming && (
-            <StatusBadge
-              label={`Starts in ${item.startsInMinutes ?? 0}m`}
-              color={colors.warning}
-              size="sm"
-            />
-          )}
         </View>
       </View>
 
-      {/* Course Title */}
+      {/* Course name */}
       <Text
-        style={[styles.courseTitle, { color: colors.text }]}
+        style={[styles.courseName, { color: colors.text }]}
         numberOfLines={2}
       >
         {courseName}
       </Text>
 
-      {/* Location info */}
-      {locationText ? (
-        <View style={styles.infoRow}>
-          <MapPin size={14} color={colors.textSecondary} />
-          <Text
-            style={[styles.infoText, { color: colors.textSecondary }]}
-            numberOfLines={1}
-          >
-            {locationText}
-          </Text>
-        </View>
-      ) : null}
-
-      {/* Lecturer info (if available) */}
-      {item.lecturer_name ? (
-        <View style={styles.infoRow}>
-          <User size={14} color={colors.textTertiary} />
-          <Text
-            style={[styles.infoText, { color: colors.textTertiary }]}
-            numberOfLines={1}
-          >
-            {item.lecturer_name}
-          </Text>
-        </View>
-      ) : null}
-
-      {/* Progress Bar for Active Class */}
-      {isActive && (
-        <View
-          style={[
-            styles.progressTrack,
-            { backgroundColor: colors.surfaceElevated },
-          ]}
+      {/* Lecturer */}
+      {lecturerName && (
+        <Text
+          style={[styles.lecturerName, { color: colors.textSecondary }]}
+          numberOfLines={1}
         >
+          {lecturerName}
+        </Text>
+      )}
+
+      {/* Location */}
+      {locationString.length > 0 && (
+        <View style={styles.locationRow}>
+          <MapPin
+            size={13}
+            color={colors.textTertiary}
+            strokeWidth={1.8}
+            style={styles.locationIcon}
+          />
+          <Text
+            style={[styles.locationText, { color: colors.textTertiary }]}
+            numberOfLines={1}
+          >
+            {locationString}
+          </Text>
+        </View>
+      )}
+
+      {/* Active class indicator + progress */}
+      {isActive && (
+        <View style={styles.activeSection}>
+          <View style={styles.activeIndicator}>
+            <View style={[styles.activeDot, { backgroundColor: typeColor }]} />
+            <Text style={[styles.activeLabel, { color: typeColor }]}>
+              Happening Now
+            </Text>
+          </View>
           <View
             style={[
-              styles.progressBar,
-              {
-                backgroundColor: colors.accent,
-                width: `${progressPercent}%`,
-              },
+              styles.progressTrack,
+              { backgroundColor: hexToRgba(typeColor, 0.12) },
             ]}
-          />
+          >
+            <View
+              style={[
+                styles.progressFill,
+                {
+                  backgroundColor: typeColor,
+                  width: `${Math.round(progress * 100)}%`,
+                },
+              ]}
+            />
+          </View>
         </View>
       )}
     </View>
@@ -183,58 +205,84 @@ export const ClassCard: React.FC<ClassCardProps> = ({ item, colors }) => {
 
 const styles = StyleSheet.create({
   card: {
+    padding: Spacing.base + 4,
     borderRadius: BorderRadius.lg,
     borderWidth: 1,
-    padding: Spacing.base,
     marginBottom: Spacing.md,
-    ...Shadows.sm,
-    overflow: 'hidden',
   },
-  topRow: {
+  header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: Spacing.sm,
+    justifyContent: 'space-between',
+    marginBottom: Spacing.sm + 2,
   },
   timeContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.xs,
+  },
+  timeIcon: {
+    marginRight: Spacing.xs,
   },
   timeText: {
     fontFamily: Fonts.medium,
     fontSize: FontSizes.sm,
+    letterSpacing: 0.2,
   },
-  badgeGroup: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.xs,
-  },
-  courseTitle: {
-    fontFamily: Fonts.bold,
-    fontSize: FontSizes.md,
-    lineHeight: FontSizes.md * 1.3,
+  courseName: {
+    fontFamily: Fonts.semiBold,
+    fontSize: FontSizes.base,
+    lineHeight: FontSizes.base * 1.35,
+    letterSpacing: -0.3,
     marginBottom: Spacing.xs,
   },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.xs,
-    marginTop: Spacing.xs,
-  },
-  infoText: {
+  lecturerName: {
     fontFamily: Fonts.regular,
     fontSize: FontSizes.sm,
-    flexShrink: 1,
+    lineHeight: FontSizes.sm * 1.4,
+    marginBottom: Spacing.xs + 2,
+  },
+  locationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 2,
+  },
+  locationIcon: {
+    marginRight: Spacing.xs,
+  },
+  locationText: {
+    fontFamily: Fonts.regular,
+    fontSize: FontSizes.sm,
+    lineHeight: FontSizes.sm * 1.4,
+    flex: 1,
+  },
+  activeSection: {
+    marginTop: Spacing.md,
+  },
+  activeIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Spacing.xs + 2,
+  },
+  activeDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginRight: Spacing.xs + 2,
+  },
+  activeLabel: {
+    fontFamily: Fonts.medium,
+    fontSize: FontSizes.xs,
+    letterSpacing: 0.1,
   },
   progressTrack: {
-    height: 4,
-    borderRadius: BorderRadius.full,
-    marginTop: Spacing.md,
+    height: 3,
+    borderRadius: 1.5,
     overflow: 'hidden',
   },
-  progressBar: {
-    height: '100%',
-    borderRadius: BorderRadius.full,
+  progressFill: {
+    height: 3,
+    borderRadius: 1.5,
   },
 });
+
+export default ClassCard;

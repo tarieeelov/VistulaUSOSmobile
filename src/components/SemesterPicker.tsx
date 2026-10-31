@@ -7,7 +7,12 @@ import {
   ViewStyle,
 } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
-import { BorderRadius, FontSizes, Fonts, Spacing } from '../constants/theme';
+import {
+  BorderRadius,
+  FontSizes,
+  Fonts,
+  Spacing,
+} from '../constants/theme';
 
 export interface SemesterPickerProps {
   semesters: string[];
@@ -95,17 +100,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.base,
     paddingVertical: Spacing.xs,
     flexDirection: 'row',
-    gap: Spacing.sm,
+    gap: Spacing.xs + 2,
   },
   pill: {
-    paddingHorizontal: Spacing.base,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.full,
+    paddingHorizontal: Spacing.md + 2,
+    paddingVertical: Spacing.xs + 3,
+    borderRadius: BorderRadius.md,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   pillText: {
-    fontSize: FontSizes.sm,
+    fontSize: FontSizes.xs + 1,
+    letterSpacing: 0.1,
   },
 });
+
+export default SemesterPicker;

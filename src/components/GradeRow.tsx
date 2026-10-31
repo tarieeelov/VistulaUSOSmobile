@@ -1,30 +1,45 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, ViewStyle } from 'react-native';
 import {
-  BorderRadius,
-  FontSizes,
-  Fonts,
-  Spacing,
   ThemeColors,
+  DarkColors,
   getGradeColor,
+  Fonts,
+  FontSizes,
+  Spacing,
+  BorderRadius,
 } from '../constants/theme';
 
 export interface GradeRowProps {
   courseName: string;
   grade: string | null;
-  session: number;
-  colors: ThemeColors;
+  session?: number;
+  colors?: ThemeColors;
+  ects?: number | null;
+  semester?: string | null;
+  style?: ViewStyle;
 }
 
+/**
+ * GradeRow — A clean, editorial-style grade display row.
+ *
+ * - Hairline bottom border separator
+ * - Grade pill: 28px height, min-width 44px, borderRadius 8
+ * - No-grade ("—") uses a muted outline style instead of filled
+ */
 export const GradeRow: React.FC<GradeRowProps> = ({
   courseName,
   grade,
   session,
-  colors,
+  colors = DarkColors,
+  ects,
+  semester,
+  style,
 }) => {
-  const gradeColor = getGradeColor(grade, colors);
-  const displayGrade = grade && grade.trim().length > 0 ? grade.trim() : '—';
-  const sessionLabel = `Exam #${session}`;
+  const hasGrade = grade !== null && grade !== undefined && grade !== '' && grade !== '—';
+  const displayGrade = hasGrade ? grade : '—';
+  const gradeColor = hasGrade ? getGradeColor(grade!, colors) : null;
+  const sessionLabel = session != null ? `Exam #${session}` : null;
 
   return (
     <View
@@ -33,9 +48,10 @@ export const GradeRow: React.FC<GradeRowProps> = ({
         {
           borderBottomColor: colors.borderLight,
         },
+        style,
       ]}
     >
-      {/* Course Details (Left) */}
+      {/* Left: Course info */}
       <View style={styles.courseInfo}>
         <Text
           style={[styles.courseName, { color: colors.text }]}
@@ -43,53 +59,135 @@ export const GradeRow: React.FC<GradeRowProps> = ({
         >
           {courseName}
         </Text>
-        <Text style={[styles.sessionText, { color: colors.textSecondary }]}>
-          {sessionLabel}
-        </Text>
+        <View style={styles.metaRow}>
+          {sessionLabel && (
+            <Text style={[styles.metaText, { color: colors.textTertiary }]}>
+              {sessionLabel}
+            </Text>
+          )}
+          {sessionLabel && (ects != null || semester) && (
+            <Text style={[styles.metaDot, { color: colors.textTertiary }]}>·</Text>
+          )}
+          {ects != null && (
+            <Text style={[styles.metaText, { color: colors.textTertiary }]}>
+              {ects} ECTS
+            </Text>
+          )}
+          {ects != null && semester && (
+            <Text style={[styles.metaDot, { color: colors.textTertiary }]}>·</Text>
+          )}
+          {semester && (
+            <Text style={[styles.metaText, { color: colors.textTertiary }]}>
+              {semester}
+            </Text>
+          )}
+        </View>
       </View>
 
-      {/* Grade Pill (Right) */}
-      <View style={[styles.gradePill, { backgroundColor: gradeColor }]}>
-        <Text style={styles.gradeText}>{displayGrade}</Text>
-      </View>
+      {/* Right: Grade pill */}
+      {hasGrade && gradeColor ? (
+        <View
+          style={[
+            styles.gradePill,
+            {
+              backgroundColor: hexToRgba(gradeColor, 0.12),
+            },
+          ]}
+        >
+          <Text style={[styles.gradeText, { color: gradeColor }]}>
+            {displayGrade}
+          </Text>
+        </View>
+      ) : (
+        <View
+          style={[
+            styles.gradePillOutline,
+            {
+              borderColor: colors.border,
+            },
+          ]}
+        >
+          <Text style={[styles.gradeTextMuted, { color: colors.textTertiary }]}>
+            {displayGrade}
+          </Text>
+        </View>
+      )}
     </View>
   );
 };
 
+/**
+ * Convert a hex color string to rgba with a given alpha.
+ */
+function hexToRgba(hex: string, alpha: number): string {
+  const cleaned = hex.replace('#', '');
+  const r = parseInt(cleaned.substring(0, 2), 16);
+  const g = parseInt(cleaned.substring(2, 4), 16);
+  const b = parseInt(cleaned.substring(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
 const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: Spacing.md,
-    borderBottomWidth: 1,
+    justifyContent: 'space-between',
+    paddingVertical: Spacing.base,
+    paddingHorizontal: Spacing.xs,
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
   courseInfo: {
     flex: 1,
-    paddingRight: Spacing.base,
+    marginRight: Spacing.base,
   },
   courseName: {
-    fontFamily: Fonts.semiBold,
+    fontFamily: Fonts.medium,
     fontSize: FontSizes.base,
-    lineHeight: FontSizes.base * 1.3,
+    lineHeight: FontSizes.base * 1.4,
+    letterSpacing: -0.2,
   },
-  sessionText: {
-    fontFamily: Fonts.regular,
-    fontSize: FontSizes.xs,
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginTop: Spacing.xs,
   },
+  metaText: {
+    fontFamily: Fonts.regular,
+    fontSize: FontSizes.xs,
+    lineHeight: FontSizes.xs * 1.4,
+  },
+  metaDot: {
+    fontFamily: Fonts.regular,
+    fontSize: FontSizes.xs,
+    marginHorizontal: Spacing.xs,
+  },
   gradePill: {
-    minWidth: 48,
-    height: 32,
-    borderRadius: BorderRadius.full,
-    paddingHorizontal: Spacing.sm,
+    height: 28,
+    minWidth: 44,
+    borderRadius: BorderRadius.sm,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingHorizontal: Spacing.sm,
   },
   gradeText: {
-    color: '#FFFFFF',
-    fontFamily: Fonts.bold,
-    fontSize: FontSizes.base,
-    textAlign: 'center',
+    fontFamily: Fonts.semiBold,
+    fontSize: FontSizes.sm,
+    letterSpacing: 0.2,
+  },
+  gradePillOutline: {
+    height: 28,
+    minWidth: 44,
+    borderRadius: BorderRadius.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: Spacing.sm,
+    borderWidth: 1,
+  },
+  gradeTextMuted: {
+    fontFamily: Fonts.medium,
+    fontSize: FontSizes.sm,
+    letterSpacing: 0.2,
   },
 });
+
+export default GradeRow;

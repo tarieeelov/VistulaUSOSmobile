@@ -8,7 +8,12 @@ import {
 } from 'react-native';
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 import { useTheme } from '../contexts/ThemeContext';
-import { BorderRadius, FontSizes, Fonts, Spacing } from '../constants/theme';
+import {
+  BorderRadius,
+  FontSizes,
+  Fonts,
+  Spacing,
+} from '../constants/theme';
 
 export interface DaySelectorProps {
   selectedDate: Date;
@@ -16,7 +21,22 @@ export interface DaySelectorProps {
   onWeekChange: (direction: -1 | 1) => void;
 }
 
-const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const DAY_NAMES = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
+
+const MONTH_NAMES = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+];
 
 function getMonday(d: Date): Date {
   const date = new Date(d);
@@ -34,21 +54,6 @@ function isSameDay(d1: Date, d2: Date): boolean {
     d1.getDate() === d2.getDate()
   );
 }
-
-const MONTH_NAMES = [
-  'January',
-  'February',
-  'March',
-  'April',
-  'May',
-  'June',
-  'July',
-  'August',
-  'September',
-  'October',
-  'November',
-  'December',
-];
 
 export const DaySelector: React.FC<DaySelectorProps> = ({
   selectedDate,
@@ -73,7 +78,7 @@ export const DaySelector: React.FC<DaySelectorProps> = ({
     if (monday.getMonth() === sunday.getMonth()) {
       return `${MONTH_NAMES[monday.getMonth()]} ${monday.getFullYear()}`;
     }
-    return `${MONTH_NAMES[monday.getMonth()].slice(0, 3)} - ${MONTH_NAMES[sunday.getMonth()].slice(0, 3)} ${sunday.getFullYear()}`;
+    return `${MONTH_NAMES[monday.getMonth()].slice(0, 3)} – ${MONTH_NAMES[sunday.getMonth()].slice(0, 3)} ${sunday.getFullYear()}`;
   }, [weekDays]);
 
   const handleTodayPress = () => {
@@ -82,28 +87,31 @@ export const DaySelector: React.FC<DaySelectorProps> = ({
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Navigation Header */}
+      {/* Month & Navigation Bar */}
       <View style={styles.header}>
         <Text style={[styles.monthText, { color: colors.text }]}>
           {monthLabel}
         </Text>
 
-        <View style={styles.actions}>
+        <View style={styles.navGroup}>
           <TouchableOpacity
             style={[
-              styles.navButton,
-              { backgroundColor: colors.surface, borderColor: colors.border },
+              styles.navBtn,
+              {
+                backgroundColor: colors.surface,
+                borderColor: colors.border,
+              },
             ]}
             onPress={() => onWeekChange(-1)}
             activeOpacity={0.7}
             accessibilityLabel="Previous week"
           >
-            <ChevronLeft size={18} color={colors.text} />
+            <ChevronLeft size={16} color={colors.textSecondary} strokeWidth={2} />
           </TouchableOpacity>
 
           <TouchableOpacity
             style={[
-              styles.todayButton,
+              styles.todayBtn,
               {
                 backgroundColor: colors.surface,
                 borderColor: colors.border,
@@ -120,19 +128,22 @@ export const DaySelector: React.FC<DaySelectorProps> = ({
 
           <TouchableOpacity
             style={[
-              styles.navButton,
-              { backgroundColor: colors.surface, borderColor: colors.border },
+              styles.navBtn,
+              {
+                backgroundColor: colors.surface,
+                borderColor: colors.border,
+              },
             ]}
             onPress={() => onWeekChange(1)}
             activeOpacity={0.7}
             accessibilityLabel="Next week"
           >
-            <ChevronRight size={18} color={colors.text} />
+            <ChevronRight size={16} color={colors.textSecondary} strokeWidth={2} />
           </TouchableOpacity>
         </View>
       </View>
 
-      {/* Horizontal Day Chips */}
+      {/* Week Day Bento Cards */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -150,8 +161,12 @@ export const DaySelector: React.FC<DaySelectorProps> = ({
               style={[
                 styles.chip,
                 {
-                  backgroundColor: selected ? colors.primary : colors.surface,
-                  borderColor: selected ? colors.primary : colors.border,
+                  backgroundColor: selected
+                    ? colors.primary
+                    : colors.surface,
+                  borderColor: selected
+                    ? colors.primary
+                    : colors.border,
                 },
               ]}
               onPress={() => onSelectDate(date)}
@@ -162,8 +177,8 @@ export const DaySelector: React.FC<DaySelectorProps> = ({
                   styles.dayName,
                   {
                     color: selected
-                      ? 'rgba(255,255,255,0.8)'
-                      : colors.textSecondary,
+                      ? 'rgba(255, 255, 255, 0.75)'
+                      : colors.textTertiary,
                   },
                 ]}
               >
@@ -180,7 +195,7 @@ export const DaySelector: React.FC<DaySelectorProps> = ({
                 {dayNumber}
               </Text>
 
-              {/* Today indicator dot */}
+              {/* Minimal current day dot */}
               <View
                 style={[
                   styles.dot,
@@ -188,7 +203,7 @@ export const DaySelector: React.FC<DaySelectorProps> = ({
                     backgroundColor: isCurrentDay
                       ? selected
                         ? '#FFFFFF'
-                        : colors.accent
+                        : colors.primary
                       : 'transparent',
                   },
                 ]}
@@ -210,36 +225,38 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: Spacing.base,
-    marginBottom: Spacing.sm,
+    marginBottom: Spacing.sm + 2,
   },
   monthText: {
-    fontFamily: Fonts.bold,
+    fontFamily: Fonts.semiBold,
     fontSize: FontSizes.base,
+    letterSpacing: -0.3,
   },
-  actions: {
+  navGroup: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.xs,
+    gap: Spacing.xs + 2,
   },
-  navButton: {
+  navBtn: {
     width: 32,
     height: 32,
-    borderRadius: BorderRadius.md,
+    borderRadius: BorderRadius.sm,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  todayButton: {
+  todayBtn: {
     paddingHorizontal: Spacing.md,
     height: 32,
-    borderRadius: BorderRadius.md,
+    borderRadius: BorderRadius.sm,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   todayText: {
-    fontFamily: Fonts.semiBold,
+    fontFamily: Fonts.medium,
     fontSize: FontSizes.xs,
+    letterSpacing: 0.1,
   },
   scrollContent: {
     paddingHorizontal: Spacing.base,
@@ -248,26 +265,30 @@ const styles = StyleSheet.create({
   },
   chip: {
     width: 48,
-    height: 68,
-    borderRadius: BorderRadius.lg,
+    height: 66,
+    borderRadius: BorderRadius.md,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: Spacing.xs,
+    paddingVertical: Spacing.xs + 2,
   },
   dayName: {
     fontFamily: Fonts.medium,
-    fontSize: FontSizes.xs,
-    marginBottom: 2,
+    fontSize: 10,
+    letterSpacing: 0.8,
+    marginBottom: 3,
   },
   dayNumber: {
-    fontFamily: Fonts.bold,
-    fontSize: FontSizes.md,
+    fontFamily: Fonts.semiBold,
+    fontSize: FontSizes.base,
+    letterSpacing: -0.2,
   },
   dot: {
-    width: 5,
-    height: 5,
-    borderRadius: 2.5,
+    width: 4,
+    height: 4,
+    borderRadius: 2,
     marginTop: 4,
   },
 });
+
+export default DaySelector;

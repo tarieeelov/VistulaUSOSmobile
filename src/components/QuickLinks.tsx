@@ -12,13 +12,12 @@ import {
   Building2,
   FileText,
   Globe,
-  ExternalLink,
+  ArrowUpRight,
 } from 'lucide-react-native';
 import {
   BorderRadius,
   FontSizes,
   Fonts,
-  Shadows,
   Spacing,
   ThemeColors,
 } from '../constants/theme';
@@ -33,7 +32,6 @@ interface QuickLinkItem {
   description: string;
   url: string;
   icon: React.ElementType;
-  accentColor: string;
 }
 
 export const QuickLinks: React.FC<QuickLinksProps> = ({ colors }) => {
@@ -44,7 +42,6 @@ export const QuickLinks: React.FC<QuickLinksProps> = ({ colors }) => {
       description: 'Tuition & fees',
       url: 'https://usosapps.vistula.edu.pl/kontroler.php?_action=actionx:dla_stud/platnosci/index()',
       icon: CreditCard,
-      accentColor: colors.primary,
     },
     {
       id: 'dormitory',
@@ -52,23 +49,20 @@ export const QuickLinks: React.FC<QuickLinksProps> = ({ colors }) => {
       description: 'Housing & rooms',
       url: 'https://usosapps.vistula.edu.pl/kontroler.php?_action=actionx:dla_stud/akademiki/index()',
       icon: Building2,
-      accentColor: colors.accent,
     },
     {
       id: 'requests',
-      title: 'Requests',
-      description: 'Applications & forms',
+      title: 'Applications',
+      description: 'Forms & requests',
       url: 'https://usosapps.vistula.edu.pl/kontroler.php?_action=actionx:dla_stud/podania/index()',
       icon: FileText,
-      accentColor: colors.warning,
     },
     {
       id: 'usosweb',
       title: 'USOSweb',
-      description: 'Main portal',
+      description: 'Desktop portal',
       url: 'https://usosapps.vistula.edu.pl/',
       icon: Globe,
-      accentColor: colors.success,
     },
   ];
 
@@ -97,24 +91,24 @@ export const QuickLinks: React.FC<QuickLinksProps> = ({ colors }) => {
               styles.card,
               {
                 backgroundColor: colors.surface,
-                borderColor: colors.borderLight,
+                borderColor: colors.border,
               },
             ]}
             onPress={() => handlePress(item.url)}
             activeOpacity={0.7}
             accessibilityRole="link"
-            accessibilityLabel={`${item.title}, opens external browser`}
+            accessibilityLabel={`${item.title}, opens external link`}
           >
             <View style={styles.cardHeader}>
               <View
                 style={[
                   styles.iconContainer,
-                  { backgroundColor: `${item.accentColor}1A` },
+                  { backgroundColor: colors.surfaceHighlight },
                 ]}
               >
-                <IconComponent size={22} color={item.accentColor} />
+                <IconComponent size={18} color={colors.textSecondary} strokeWidth={1.8} />
               </View>
-              <ExternalLink size={14} color={colors.textTertiary} />
+              <ArrowUpRight size={14} color={colors.textTertiary} strokeWidth={1.8} />
             </View>
 
             <Text
@@ -124,7 +118,7 @@ export const QuickLinks: React.FC<QuickLinksProps> = ({ colors }) => {
               {item.title}
             </Text>
             <Text
-              style={[styles.description, { color: colors.textSecondary }]}
+              style={[styles.description, { color: colors.textTertiary }]}
               numberOfLines={1}
             >
               {item.description}
@@ -140,36 +134,39 @@ const styles = StyleSheet.create({
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: Spacing.md,
+    gap: Spacing.sm + 2,
   },
   card: {
-    width: '47.5%',
+    width: '48%',
     flexGrow: 1,
     borderRadius: BorderRadius.lg,
     borderWidth: 1,
-    padding: Spacing.base,
-    ...Shadows.sm,
+    padding: Spacing.md,
   },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     marginBottom: Spacing.md,
   },
   iconContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: BorderRadius.md,
+    width: 34,
+    height: 34,
+    borderRadius: BorderRadius.sm,
     alignItems: 'center',
     justifyContent: 'center',
   },
   title: {
-    fontFamily: Fonts.bold,
-    fontSize: FontSizes.base,
+    fontFamily: Fonts.medium,
+    fontSize: FontSizes.sm,
+    letterSpacing: -0.2,
     marginBottom: 2,
   },
   description: {
     fontFamily: Fonts.regular,
     fontSize: FontSizes.xs,
+    letterSpacing: 0.1,
   },
 });
+
+export default QuickLinks;

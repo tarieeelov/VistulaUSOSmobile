@@ -7,77 +7,77 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 // ──────────────────────────────────────────────
 
 export const DarkColors = {
-  background: '#0A0A0F',
-  surface: '#16161F',
-  surfaceElevated: '#1E1E2A',
-  surfaceHighlight: '#252536',
-  primary: '#6C63FF',
-  primaryMuted: '#6C63FF22',
-  accent: '#00D4AA',
-  accentMuted: '#00D4AA22',
+  background: '#09090B',
+  surface: '#18181B',
+  surfaceElevated: '#1F1F23',
+  surfaceHighlight: '#27272A',
+  primary: '#6B8AFF',
+  primaryMuted: '#6B8AFF12',
+  accent: '#6B8AFF',
+  accentMuted: '#6B8AFF12',
   danger: '#FF6B6B',
-  dangerMuted: '#FF6B6B22',
-  warning: '#FFB84D',
-  warningMuted: '#FFB84D22',
-  success: '#4ADE80',
-  successMuted: '#4ADE8022',
-  text: '#EEEEF2',
-  textSecondary: '#8888A0',
-  textTertiary: '#555566',
-  border: '#2A2A3A',
-  borderLight: '#1F1F2F',
-  tabBar: '#0D0D14',
-  tabBarBorder: '#1A1A28',
+  dangerMuted: '#FF6B6B0A',
+  warning: '#FFA94D',
+  warningMuted: '#FFA94D0A',
+  success: '#69DB7C',
+  successMuted: '#69DB7C0A',
+  text: '#FAFAFA',
+  textSecondary: '#A1A1AA',
+  textTertiary: '#52525B',
+  border: 'rgba(255,255,255,0.08)',
+  borderLight: 'rgba(255,255,255,0.04)',
+  tabBar: '#09090B',
+  tabBarBorder: 'rgba(255,255,255,0.06)',
   overlay: 'rgba(0,0,0,0.6)',
   // Grade colors
-  gradeExcellent: '#4ADE80',
-  gradeGood: '#6C63FF',
-  gradeSatisfactory: '#FFB84D',
+  gradeExcellent: '#69DB7C',
+  gradeGood: '#6B8AFF',
+  gradeSatisfactory: '#FFA94D',
   gradeFail: '#FF6B6B',
-  gradeNone: '#555566',
+  gradeNone: '#52525B',
   // Class type colors
-  classLecture: '#6C63FF',
-  classLab: '#00D4AA',
-  classExercise: '#FFB84D',
-  classSeminar: '#FF6B9D',
-  classOther: '#8888A0',
+  classLecture: '#6B8AFF',
+  classLab: '#69DB7C',
+  classExercise: '#FFA94D',
+  classSeminar: '#FF6B6B',
+  classOther: '#A1A1AA',
 };
 
 export const LightColors = {
-  background: '#F5F5FA',
+  background: '#FFFFFF',
   surface: '#FFFFFF',
-  surfaceElevated: '#F0F0F8',
-  surfaceHighlight: '#E8E8F2',
-  primary: '#5046E5',
-  primaryMuted: '#5046E522',
-  accent: '#00B894',
-  accentMuted: '#00B89422',
-  danger: '#E74C3C',
-  dangerMuted: '#E74C3C22',
-  warning: '#F39C12',
-  warningMuted: '#F39C1222',
-  success: '#27AE60',
-  successMuted: '#27AE6022',
-  text: '#1A1A2E',
-  textSecondary: '#6B6B80',
-  textTertiary: '#9999AA',
-  border: '#E0E0EA',
-  borderLight: '#ECECF2',
+  surfaceElevated: '#F8F8FA',
+  surfaceHighlight: '#F0F0F4',
+  primary: '#3B5BDB',
+  primaryMuted: '#3B5BDB10',
+  accent: '#3B5BDB',
+  accentMuted: '#3B5BDB10',
+  danger: '#C92A2A',
+  dangerMuted: '#C92A2A0A',
+  warning: '#E67700',
+  warningMuted: '#E677000A',
+  success: '#2B8A3E',
+  successMuted: '#2B8A3E0A',
+  text: '#1A1A1A',
+  textSecondary: '#71717A',
+  textTertiary: '#A1A1AA',
+  border: 'rgba(0,0,0,0.08)',
+  borderLight: 'rgba(0,0,0,0.04)',
   tabBar: '#FFFFFF',
-  tabBarBorder: '#E0E0EA',
-  overlay: 'rgba(0,0,0,0.35)',
+  tabBarBorder: 'rgba(0,0,0,0.06)',
+  overlay: 'rgba(0,0,0,0.4)',
   // Grade colors
-  gradeExcellent: '#27AE60',
-  gradeGood: '#5046E5',
-  gradeSatisfactory: '#F39C12',
-  gradeFail: '#E74C3C',
-  gradeNone: '#9999AA',
+  gradeExcellent: '#2B8A3E',
+  gradeGood: '#3B5BDB',
+  gradeSatisfactory: '#E67700',
+  gradeFail: '#C92A2A',
+  gradeNone: '#A1A1AA',
   // Class type colors
-  classLecture: '#5046E5',
-  classLab: '#00B894',
-  classExercise: '#F39C12',
-  classSeminar: '#E74C3C',
-  classOther: '#6B6B80',
+  classLecture: '#3B5BDB',
+  classLab: '#2B8A3E',
+  classExercise: '#E67700',
+  classSeminar: '#C92A2A',
+  classOther: '#71717A',
 };
 
 export type ThemeColors = typeof DarkColors;
@@ -101,9 +101,9 @@ export const FontSizes = {
   base: 15,
   md: 17,
   lg: 20,
-  xl: 24,
-  xxl: 28,
-  hero: 34,
+  xl: 26,
+  xxl: 32,
+  hero: 40,
 } as const;
 
 // ──────────────────────────────────────────────
@@ -115,10 +115,10 @@ export const Spacing = {
   sm: 8,
   md: 12,
   base: 16,
-  lg: 20,
-  xl: 24,
-  xxl: 32,
-  xxxl: 48,
+  lg: 24,
+  xl: 32,
+  xxl: 48,
+  xxxl: 64,
 } as const;
 
 export const BorderRadius = {
@@ -131,45 +131,45 @@ export const BorderRadius = {
 } as const;
 
 // ──────────────────────────────────────────────
-// Shadows (iOS-style)
+// Shadows (subtle, no glow)
 // ──────────────────────────────────────────────
 
 export const Shadows = {
   sm: {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOpacity: 0.04,
+    shadowRadius: 3,
+    elevation: 1,
   },
   md: {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 12,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
   },
   lg: {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.16,
-    shadowRadius: 24,
-    elevation: 8,
-  },
-  glow: (color: string) => ({
-    shadowColor: color,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.35,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
     shadowRadius: 16,
-    elevation: 6,
-  }),
+    elevation: 3,
+  },
 } as const;
+
+// Backward-compatible lowercase aliases
+export const fonts = Fonts;
+export const fontSizes = FontSizes;
+export const spacing = Spacing;
+export const borderRadius = BorderRadius;
+export const shadows = Shadows;
 
 // ──────────────────────────────────────────────
 // Helper: get grade color
 // ──────────────────────────────────────────────
 
-export function getGradeColor(grade: string | null, colors: ThemeColors): string {
+export function getGradeColor(grade: string | null, colors: ThemeColors = DarkColors): string {
   if (!grade) return colors.gradeNone;
   const num = parseFloat(grade);
   if (isNaN(num)) return colors.gradeNone;
@@ -183,7 +183,7 @@ export function getGradeColor(grade: string | null, colors: ThemeColors): string
 // Helper: get class type color
 // ──────────────────────────────────────────────
 
-export function getClassTypeColor(classType: string | null, colors: ThemeColors): string {
+export function getClassTypeColor(classType: string | null, colors: ThemeColors = DarkColors): string {
   if (!classType) return colors.classOther;
   const lower = classType.toLowerCase();
   if (lower.includes('lecture') || lower.includes('wykład')) return colors.classLecture;

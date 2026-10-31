@@ -12,7 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   CloudOff,
-  Sparkles,
+  Calendar,
   CalendarDays,
   CalendarRange,
 } from 'lucide-react-native';
@@ -31,7 +31,6 @@ import {
   BorderRadius,
   FontSizes,
   Fonts,
-  Shadows,
   Spacing,
 } from '../../src/constants/theme';
 
@@ -144,8 +143,8 @@ export default function ScheduleScreen() {
   const { isDemo } = useAuth();
   const { colors } = useTheme();
 
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [viewMode, setViewMode] = useState<'day' | 'week'>('day');
-  const [selectedDate, setSelectedDate] = useState<Date>(() => new Date());
   const [timetable, setTimetable] = useState<ProcessedClass[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
@@ -267,13 +266,13 @@ export default function ScheduleScreen() {
 
   const subtitleText = useMemo(() => {
     if (viewMode === 'week') {
-      return `${totalWeeklyClasses} ${totalWeeklyClasses === 1 ? 'class' : 'classes'} this week${lastUpdated ? ` • Updated ${lastUpdated}` : ''}`;
+      return `${totalWeeklyClasses} ${totalWeeklyClasses === 1 ? 'class' : 'classes'} scheduled`;
     }
     if (fromCache && lastUpdated) {
-      return `Offline data • ${lastUpdated}`;
+      return `Offline • ${lastUpdated}`;
     }
     if (lastUpdated) {
-      return `Updated at ${lastUpdated}`;
+      return `Updated ${lastUpdated}`;
     }
     if (isDemo) {
       return 'Demo Schedule';
@@ -286,7 +285,7 @@ export default function ScheduleScreen() {
       style={[styles.safeArea, { backgroundColor: colors.background }]}
       edges={['top']}
     >
-      {/* Top Header */}
+      {/* Top Editorial Header */}
       <View style={styles.header}>
         <View style={styles.headerTitleRow}>
           <View style={styles.titleColumn}>
@@ -303,7 +302,7 @@ export default function ScheduleScreen() {
               <View
                 style={[
                   styles.offlineBadge,
-                  { backgroundColor: colors.warningMuted, borderColor: colors.warning },
+                  { backgroundColor: colors.warningMuted, borderColor: colors.border },
                 ]}
               >
                 <CloudOff size={11} color={colors.warning} />
@@ -311,13 +310,13 @@ export default function ScheduleScreen() {
               </View>
             )}
 
-            {/* View Mode Toggle: Day vs Week */}
+            {/* View Mode Segment Control */}
             <View
               style={[
                 styles.viewModeToggle,
                 {
-                  backgroundColor: colors.surface,
-                  borderColor: colors.borderLight,
+                  backgroundColor: colors.surfaceElevated,
+                  borderColor: colors.border,
                 },
               ]}
             >
@@ -336,6 +335,7 @@ export default function ScheduleScreen() {
                 <CalendarDays
                   size={13}
                   color={viewMode === 'day' ? '#FFFFFF' : colors.textSecondary}
+                  strokeWidth={2}
                 />
                 <Text
                   style={[
@@ -362,6 +362,7 @@ export default function ScheduleScreen() {
                 <CalendarRange
                   size={13}
                   color={viewMode === 'week' ? '#FFFFFF' : colors.textSecondary}
+                  strokeWidth={2}
                 />
                 <Text
                   style={[
@@ -392,7 +393,7 @@ export default function ScheduleScreen() {
       {/* Main List Content */}
       {loading && timetable.length === 0 ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
+          <ActivityIndicator size="small" color={colors.primary} />
           <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
             Loading timetable...
           </Text>
@@ -421,23 +422,23 @@ export default function ScheduleScreen() {
                 styles.emptyCard,
                 {
                   backgroundColor: colors.surface,
-                  borderColor: colors.borderLight,
+                  borderColor: colors.border,
                 },
               ]}
             >
               <View
                 style={[
                   styles.emptyIconBadge,
-                  { backgroundColor: colors.accentMuted },
+                  { backgroundColor: colors.surfaceHighlight },
                 ]}
               >
-                <Sparkles size={32} color={colors.accent} />
+                <Calendar size={22} color={colors.textTertiary} strokeWidth={1.7} />
               </View>
               <Text style={[styles.emptyTitle, { color: colors.text }]}>
-                No classes today 🎉
+                No scheduled classes
               </Text>
-              <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
-                Enjoy your free time, review coursework, or relax!
+              <Text style={[styles.emptySubtitle, { color: colors.textTertiary }]}>
+                No lectures or laboratory sessions registered for this date.
               </Text>
             </View>
           }
@@ -462,23 +463,23 @@ export default function ScheduleScreen() {
                 styles.emptyCard,
                 {
                   backgroundColor: colors.surface,
-                  borderColor: colors.borderLight,
+                  borderColor: colors.border,
                 },
               ]}
             >
               <View
                 style={[
                   styles.emptyIconBadge,
-                  { backgroundColor: colors.accentMuted },
+                  { backgroundColor: colors.surfaceHighlight },
                 ]}
               >
-                <Sparkles size={32} color={colors.accent} />
+                <Calendar size={22} color={colors.textTertiary} strokeWidth={1.7} />
               </View>
               <Text style={[styles.emptyTitle, { color: colors.text }]}>
-                No classes this week 🎉
+                No classes this week
               </Text>
-              <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
-                No lectures or labs are scheduled for this week. Enjoy your time off!
+              <Text style={[styles.emptySubtitle, { color: colors.textTertiary }]}>
+                No lectures or labs are scheduled for this calendar week.
               </Text>
             </View>
           ) : (
@@ -489,36 +490,32 @@ export default function ScheduleScreen() {
                   style={[
                     styles.weekDayHeader,
                     {
-                      backgroundColor: day.isToday
-                        ? colors.surface
-                        : colors.surface,
-                      borderColor: day.isToday
-                        ? colors.primary
-                        : colors.borderLight,
-                      borderLeftWidth: day.isToday ? 4 : 1,
-                      borderLeftColor: day.isToday ? colors.primary : colors.borderLight,
+                      backgroundColor: colors.surfaceElevated,
+                      borderColor: day.isToday ? colors.primary : colors.border,
+                    },
+                    day.isToday && {
+                      borderLeftWidth: 3,
+                      borderLeftColor: colors.primary,
                     },
                   ]}
                 >
                   <View style={styles.weekDayHeaderLeft}>
-                    <View style={styles.weekDayTitleContainer}>
-                      <Text
-                        style={[
-                          styles.weekDayName,
-                          { color: day.isToday ? colors.primary : colors.text },
-                        ]}
-                      >
-                        {day.dayName}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.weekDayDate,
-                          { color: colors.textSecondary },
-                        ]}
-                      >
-                        {day.formattedDate}
-                      </Text>
-                    </View>
+                    <Text
+                      style={[
+                        styles.weekDayName,
+                        { color: day.isToday ? colors.primary : colors.text },
+                      ]}
+                    >
+                      {day.dayName}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.weekDayDate,
+                        { color: colors.textTertiary },
+                      ]}
+                    >
+                      {day.formattedDate}
+                    </Text>
 
                     {day.isToday && (
                       <View
@@ -526,16 +523,9 @@ export default function ScheduleScreen() {
                           styles.todayTag,
                           {
                             backgroundColor: colors.primaryMuted,
-                            borderColor: colors.primary,
                           },
                         ]}
                       >
-                        <View
-                          style={[
-                            styles.todayTagDot,
-                            { backgroundColor: colors.primary },
-                          ]}
-                        />
                         <Text
                           style={[
                             styles.todayTagText,
@@ -552,14 +542,8 @@ export default function ScheduleScreen() {
                     style={[
                       styles.dayBadgeButton,
                       {
-                        backgroundColor:
-                          day.classes.length > 0
-                            ? colors.accentMuted
-                            : colors.background,
-                        borderColor:
-                          day.classes.length > 0
-                            ? colors.accent
-                            : colors.borderLight,
+                        backgroundColor: colors.surface,
+                        borderColor: colors.border,
                       },
                     ]}
                     onPress={() => {
@@ -575,14 +559,14 @@ export default function ScheduleScreen() {
                         {
                           color:
                             day.classes.length > 0
-                              ? colors.accent
-                              : colors.textSecondary,
+                              ? colors.text
+                              : colors.textTertiary,
                         },
                       ]}
                     >
                       {day.classes.length > 0
                         ? `${day.classes.length} ${day.classes.length === 1 ? 'class' : 'classes'}`
-                        : 'Free day'}
+                        : 'Free'}
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -603,7 +587,6 @@ export default function ScheduleScreen() {
                     style={[
                       styles.freeDayRow,
                       {
-                        backgroundColor: colors.surface,
                         borderColor: colors.borderLight,
                       },
                     ]}
@@ -611,10 +594,10 @@ export default function ScheduleScreen() {
                     <Text
                       style={[
                         styles.freeDayText,
-                        { color: colors.textSecondary },
+                        { color: colors.textTertiary },
                       ]}
                     >
-                      No scheduled classes
+                      No classes scheduled
                     </Text>
                   </View>
                 )}
@@ -647,17 +630,18 @@ const styles = StyleSheet.create({
   screenTitle: {
     fontFamily: Fonts.bold,
     fontSize: FontSizes.xxl,
-    letterSpacing: -0.5,
+    letterSpacing: -0.6,
   },
   subtitle: {
     fontFamily: Fonts.regular,
     fontSize: FontSizes.xs,
+    letterSpacing: 0.1,
     marginTop: 2,
   },
   headerControls: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.xs,
+    gap: Spacing.xs + 2,
   },
   offlineBadge: {
     flexDirection: 'row',
@@ -665,34 +649,33 @@ const styles = StyleSheet.create({
     gap: 4,
     paddingHorizontal: Spacing.sm,
     paddingVertical: 3,
-    borderRadius: BorderRadius.full,
+    borderRadius: BorderRadius.sm,
     borderWidth: 1,
   },
   offlineText: {
     fontFamily: Fonts.medium,
-    fontSize: FontSizes.xs,
+    fontSize: 10,
+    letterSpacing: 0.2,
   },
   viewModeToggle: {
     flexDirection: 'row',
-    borderRadius: BorderRadius.full,
+    borderRadius: BorderRadius.md,
     borderWidth: 1,
     padding: 2,
-    ...Shadows.sm,
   },
   toggleBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 4,
-    borderRadius: BorderRadius.full,
+    paddingHorizontal: Spacing.sm + 2,
+    paddingVertical: 5,
+    borderRadius: BorderRadius.sm,
   },
-  toggleBtnActive: {
-    ...Shadows.sm,
-  },
+  toggleBtnActive: {},
   toggleBtnText: {
-    fontFamily: Fonts.semiBold,
+    fontFamily: Fonts.medium,
     fontSize: FontSizes.xs,
+    letterSpacing: 0.1,
   },
   listContent: {
     paddingHorizontal: Spacing.base,
@@ -712,65 +695,51 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: Spacing.base,
+    paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.lg,
+    borderRadius: BorderRadius.md,
     borderWidth: 1,
-    marginBottom: Spacing.xs,
-    ...Shadows.sm,
+    marginBottom: Spacing.sm,
   },
   weekDayHeaderLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
   },
-  weekDayTitleContainer: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: Spacing.xs,
-  },
   weekDayName: {
-    fontFamily: Fonts.bold,
-    fontSize: FontSizes.md,
+    fontFamily: Fonts.semiBold,
+    fontSize: FontSizes.sm,
+    letterSpacing: -0.2,
   },
   weekDayDate: {
     fontFamily: Fonts.regular,
     fontSize: FontSizes.xs,
   },
   todayTag: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
     paddingHorizontal: Spacing.xs + 2,
-    paddingVertical: 2,
-    borderRadius: BorderRadius.full,
-    borderWidth: 1,
-  },
-  todayTagDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+    paddingVertical: 1,
+    borderRadius: BorderRadius.sm,
   },
   todayTagText: {
-    fontFamily: Fonts.bold,
+    fontFamily: Fonts.medium,
     fontSize: 10,
-    textTransform: 'uppercase',
+    letterSpacing: 0.2,
   },
   dayBadgeButton: {
     paddingHorizontal: Spacing.sm,
     paddingVertical: 3,
-    borderRadius: BorderRadius.full,
+    borderRadius: BorderRadius.sm,
     borderWidth: 1,
   },
   dayBadgeText: {
     fontFamily: Fonts.medium,
-    fontSize: FontSizes.xs,
+    fontSize: 11,
   },
   weekDayClassesList: {
     gap: Spacing.xs,
   },
   freeDayRow: {
-    paddingVertical: Spacing.sm,
+    paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.base,
     borderRadius: BorderRadius.md,
     borderWidth: 1,
@@ -779,9 +748,8 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.xs,
   },
   freeDayText: {
-    fontFamily: Fonts.medium,
+    fontFamily: Fonts.regular,
     fontSize: FontSizes.xs,
-    fontStyle: 'italic',
   },
   loadingContainer: {
     flex: 1,
@@ -799,19 +767,19 @@ const styles = StyleSheet.create({
     padding: Spacing.xxl,
     alignItems: 'center',
     marginTop: Spacing.xl,
-    ...Shadows.sm,
   },
   emptyIconBadge: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 48,
+    height: 48,
+    borderRadius: BorderRadius.lg,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: Spacing.base,
+    marginBottom: Spacing.md,
   },
   emptyTitle: {
-    fontFamily: Fonts.bold,
-    fontSize: FontSizes.lg,
+    fontFamily: Fonts.semiBold,
+    fontSize: FontSizes.base,
+    letterSpacing: -0.2,
     marginBottom: Spacing.xs,
     textAlign: 'center',
   },

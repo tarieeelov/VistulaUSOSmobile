@@ -8,7 +8,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Award, BookCheck, TrendingUp, Sparkles } from 'lucide-react-native';
+import { Award, BookCheck } from 'lucide-react-native';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import {
@@ -25,7 +25,6 @@ import {
   BorderRadius,
   FontSizes,
   Fonts,
-  Shadows,
   Spacing,
   getGradeColor,
 } from '../../src/constants/theme';
@@ -74,7 +73,6 @@ export default function GradesScreen() {
           if (Array.isArray(rawGrades)) {
             normalizedGrades = rawGrades;
           } else if (rawGrades && typeof rawGrades === 'object') {
-            // USOS sometimes returns dictionary keyed by term_id
             normalizedGrades = Object.entries(rawGrades).map(
               ([term_id, value]: [string, any]) => ({
                 term_id,
@@ -141,12 +139,11 @@ export default function GradesScreen() {
   }, [grades, selectedTerm]);
 
   // Statistics calculation for the selected term
-  const { gpa, passedRatio, passedCount, totalCount, gpaColor } = useMemo(() => {
+  const { gpa, passedRatio, totalCount, gpaColor } = useMemo(() => {
     if (!currentTermData || !currentTermData.courses.length) {
       return {
         gpa: null,
-        passedRatio: '0/0',
-        passedCount: 0,
+        passedRatio: '0 / 0',
         totalCount: 0,
         gpaColor: colors.gradeNone,
       };
@@ -187,7 +184,6 @@ export default function GradesScreen() {
     return {
       gpa: average,
       passedRatio: `${passed} / ${total}`,
-      passedCount: passed,
       totalCount: total,
       gpaColor: getGradeColor(average, colors),
     };
@@ -229,11 +225,11 @@ export default function GradesScreen() {
       style={[styles.safeArea, { backgroundColor: colors.background }]}
       edges={['top']}
     >
-      {/* Top Header */}
+      {/* Top Editorial Header */}
       <View style={styles.header}>
         <Text style={[styles.screenTitle, { color: colors.text }]}>Grades</Text>
         <Text style={[styles.screenSubtitle, { color: colors.textSecondary }]}>
-          Academic performance & ECTS summary
+          Academic evaluation & performance
         </Text>
       </View>
 
@@ -249,7 +245,7 @@ export default function GradesScreen() {
 
       {loading && grades.length === 0 ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
+          <ActivityIndicator size="small" color={colors.primary} />
           <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
             Loading grades...
           </Text>
@@ -277,7 +273,7 @@ export default function GradesScreen() {
             />
           }
           ListHeaderComponent={
-            /* Summary Card */
+            /* Bento Summary Card */
             <View
               style={[
                 styles.summaryCard,
@@ -287,16 +283,15 @@ export default function GradesScreen() {
                 },
               ]}
             >
-              {/* Left Column: Big GPA */}
+              {/* Left Column: GPA */}
               <View style={styles.gpaSection}>
-                <Text style={[styles.metricLabel, { color: colors.textSecondary }]}>
+                <Text style={[styles.metricLabel, { color: colors.textTertiary }]}>
                   SEMESTER GPA
                 </Text>
                 <Text style={[styles.gpaNumber, { color: gpaColor }]}>
                   {gpa ?? '—'}
                 </Text>
                 <View style={styles.gpaBadgeRow}>
-                  <TrendingUp size={14} color={gpaColor} />
                   <Text style={[styles.standingText, { color: gpaColor }]}>
                     {gpa && parseFloat(gpa) >= 4.5
                       ? 'Excellent'
@@ -314,25 +309,25 @@ export default function GradesScreen() {
                 style={[styles.divider, { backgroundColor: colors.borderLight }]}
               />
 
-              {/* Right Column: Pass Count & Courses */}
+              {/* Right Column: Statistics */}
               <View style={styles.statsSection}>
                 <View style={styles.statRow}>
                   <View
                     style={[
                       styles.iconCircle,
-                      { backgroundColor: colors.successMuted },
+                      { backgroundColor: colors.surfaceHighlight },
                     ]}
                   >
-                    <BookCheck size={16} color={colors.success} />
+                    <BookCheck size={15} color={colors.textSecondary} strokeWidth={1.8} />
                   </View>
                   <View>
                     <Text style={[styles.statValue, { color: colors.text }]}>
                       {passedRatio}
                     </Text>
                     <Text
-                      style={[styles.statCaption, { color: colors.textSecondary }]}
+                      style={[styles.statCaption, { color: colors.textTertiary }]}
                     >
-                      Courses Passed
+                      Passed Courses
                     </Text>
                   </View>
                 </View>
@@ -341,17 +336,17 @@ export default function GradesScreen() {
                   <View
                     style={[
                       styles.iconCircle,
-                      { backgroundColor: colors.primaryMuted },
+                      { backgroundColor: colors.surfaceHighlight },
                     ]}
                   >
-                    <Award size={16} color={colors.primary} />
+                    <Award size={15} color={colors.textSecondary} strokeWidth={1.8} />
                   </View>
                   <View>
                     <Text style={[styles.statValue, { color: colors.text }]}>
                       {totalCount} Total
                     </Text>
                     <Text
-                      style={[styles.statCaption, { color: colors.textSecondary }]}
+                      style={[styles.statCaption, { color: colors.textTertiary }]}
                     >
                       Enrolled Courses
                     </Text>
@@ -366,23 +361,23 @@ export default function GradesScreen() {
                 styles.emptyCard,
                 {
                   backgroundColor: colors.surface,
-                  borderColor: colors.borderLight,
+                  borderColor: colors.border,
                 },
               ]}
             >
               <View
                 style={[
                   styles.emptyIconBadge,
-                  { backgroundColor: colors.primaryMuted },
+                  { backgroundColor: colors.surfaceHighlight },
                 ]}
               >
-                <Sparkles size={32} color={colors.primary} />
+                <Award size={22} color={colors.textTertiary} strokeWidth={1.7} />
               </View>
               <Text style={[styles.emptyTitle, { color: colors.text }]}>
-                No course records
+                No academic records
               </Text>
               <Text
-                style={[styles.emptySubtitle, { color: colors.textSecondary }]}
+                style={[styles.emptySubtitle, { color: colors.textTertiary }]}
               >
                 No registered grades found for the selected semester.
               </Text>
@@ -406,11 +401,12 @@ const styles = StyleSheet.create({
   screenTitle: {
     fontFamily: Fonts.bold,
     fontSize: FontSizes.xxl,
-    letterSpacing: -0.5,
+    letterSpacing: -0.6,
   },
   screenSubtitle: {
     fontFamily: Fonts.regular,
     fontSize: FontSizes.xs,
+    letterSpacing: 0.1,
     marginTop: 2,
   },
   picker: {
@@ -427,7 +423,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: Spacing.lg,
     marginVertical: Spacing.md,
-    ...Shadows.md,
   },
   gpaSection: {
     flex: 1,
@@ -435,34 +430,34 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   metricLabel: {
-    fontFamily: Fonts.semiBold,
-    fontSize: FontSizes.xs,
-    letterSpacing: 0.8,
+    fontFamily: Fonts.medium,
+    fontSize: 10,
+    letterSpacing: 1,
     marginBottom: 4,
   },
   gpaNumber: {
     fontFamily: Fonts.bold,
-    fontSize: 42,
-    lineHeight: 48,
+    fontSize: 40,
+    lineHeight: 46,
     letterSpacing: -1,
   },
   gpaBadgeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    marginTop: 4,
+    marginTop: 2,
   },
   standingText: {
-    fontFamily: Fonts.semiBold,
+    fontFamily: Fonts.medium,
     fontSize: FontSizes.xs,
+    letterSpacing: 0.2,
   },
   divider: {
-    width: 1,
+    width: StyleSheet.hairlineWidth,
     marginHorizontal: Spacing.base,
   },
   statsSection: {
     flex: 1.2,
-    justifyContent: 'space-around',
+    justifyContent: 'center',
     gap: Spacing.md,
   },
   statRow: {
@@ -471,15 +466,16 @@ const styles = StyleSheet.create({
     gap: Spacing.md,
   },
   iconCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 32,
+    height: 32,
+    borderRadius: BorderRadius.sm,
     justifyContent: 'center',
     alignItems: 'center',
   },
   statValue: {
-    fontFamily: Fonts.bold,
-    fontSize: FontSizes.md,
+    fontFamily: Fonts.semiBold,
+    fontSize: FontSizes.sm + 1,
+    letterSpacing: -0.2,
   },
   statCaption: {
     fontFamily: Fonts.regular,
@@ -501,25 +497,26 @@ const styles = StyleSheet.create({
     padding: Spacing.xxl,
     alignItems: 'center',
     marginTop: Spacing.xl,
-    ...Shadows.sm,
   },
   emptyIconBadge: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 48,
+    height: 48,
+    borderRadius: BorderRadius.lg,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: Spacing.base,
+    marginBottom: Spacing.md,
   },
   emptyTitle: {
-    fontFamily: Fonts.bold,
-    fontSize: FontSizes.lg,
+    fontFamily: Fonts.semiBold,
+    fontSize: FontSizes.base,
+    letterSpacing: -0.2,
     marginBottom: Spacing.xs,
   },
   emptySubtitle: {
     fontFamily: Fonts.regular,
     fontSize: FontSizes.sm,
     textAlign: 'center',
+    lineHeight: FontSizes.sm * 1.4,
     maxWidth: 260,
   },
 });
