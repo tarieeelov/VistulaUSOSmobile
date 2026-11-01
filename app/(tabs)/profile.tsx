@@ -197,7 +197,7 @@ export default function ProfileScreen() {
         {/* Quick Links Section */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            University Portals
+            Portals
           </Text>
           <QuickLinks colors={colors} />
         </View>

@@ -9,10 +9,8 @@ import {
 } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import {
-  CreditCard,
-  Building2,
-  FileText,
   Globe,
+  GraduationCap,
   ArrowUpRight,
 } from 'lucide-react-native';
 import {
@@ -38,32 +36,18 @@ interface QuickLinkItem {
 export const QuickLinks: React.FC<QuickLinksProps> = ({ colors }) => {
   const links: QuickLinkItem[] = [
     {
-      id: 'payments',
-      title: 'Payments',
-      description: 'Tuition & fees',
-      url: 'https://usosapps.vistula.edu.pl/kontroler.php?_action=actionx:dla_stud/platnosci/index()',
-      icon: CreditCard,
-    },
-    {
-      id: 'dormitory',
-      title: 'Dormitory',
-      description: 'Housing & rooms',
-      url: 'https://usosapps.vistula.edu.pl/kontroler.php?_action=actionx:dla_stud/akademiki/index()',
-      icon: Building2,
-    },
-    {
-      id: 'requests',
-      title: 'Applications',
-      description: 'Forms & requests',
-      url: 'https://usosapps.vistula.edu.pl/kontroler.php?_action=actionx:dla_stud/podania/index()',
-      icon: FileText,
-    },
-    {
       id: 'usosweb',
       title: 'USOSweb',
-      description: 'Desktop portal',
-      url: 'https://usosapps.vistula.edu.pl/',
+      description: 'usosweb.vistula.edu.pl',
+      url: 'https://usosweb.vistula.edu.pl/',
       icon: Globe,
+    },
+    {
+      id: 'platon',
+      title: 'Platon',
+      description: 'platon.vistula.edu.pl',
+      url: 'https://platon.vistula.edu.pl/',
+      icon: GraduationCap,
     },
   ];
 
