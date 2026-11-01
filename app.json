@@ -7,6 +7,9 @@
     "icon": "./assets/icon.png",
     "scheme": "vistulausos",
     "userInterfaceStyle": "automatic",
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.vistula.usosapp"
