@@ -20,7 +20,6 @@ function RootLayoutContent() {
     <>
       <StatusBar
         style={isDark ? 'light' : 'dark'}
-        backgroundColor={colors.background}
       />
       <Stack
         screenOptions={{
