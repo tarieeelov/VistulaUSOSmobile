@@ -192,14 +192,14 @@ const server = http.createServer(async (request, response) => {
       return response.end();
     }
 
-    if (request.method === 'GET' && url.pathname === '/health') {
+    if (request.method === 'GET' && (url.pathname === '/health' || url.pathname === '/api/health')) {
       return sendJson(response, 200, { ok: true });
     }
-    if (request.method === 'POST' && url.pathname === '/oauth/start') {
+    if (request.method === 'POST' && (url.pathname === '/oauth/start' || url.pathname === '/api/oauth/start')) {
       const body = await readJson(request).catch(() => ({}));
       return sendJson(response, 200, await startLogin(body?.callback_url));
     }
-    if (request.method === 'POST' && url.pathname === '/oauth/complete') {
+    if (request.method === 'POST' && (url.pathname === '/oauth/complete' || url.pathname === '/api/oauth/complete')) {
       return sendJson(response, 200, await completeLogin(await readJson(request)));
     }
 
@@ -208,7 +208,7 @@ const server = http.createServer(async (request, response) => {
     const session = unseal(sessionToken, 'usos-session');
     const token = { key: session.oauth_token, secret: session.oauth_token_secret };
 
-    if (request.method === 'POST' && url.pathname === '/oauth/logout') {
+    if (request.method === 'POST' && (url.pathname === '/oauth/logout' || url.pathname === '/api/oauth/logout')) {
       const revokeUrl = new URL('services/oauth/revoke_token', USOS_BASE_URL).toString();
       const authorization = oauth.toHeader(
         oauth.authorize({ url: revokeUrl, method: 'POST', data: {} }, token)

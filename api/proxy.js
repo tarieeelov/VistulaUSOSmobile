@@ -170,27 +170,46 @@ async function completeLogin(body) {
   };
 }
 
+function resolvePath(req, url) {
+  let pathname = url.pathname;
+  const matchedPath = req.headers['x-matched-path'] || req.headers['x-invoke-path'];
+  if (matchedPath) {
+    pathname = matchedPath.split('?')[0];
+  } else if (pathname === '/api/proxy' || pathname === '/api/proxy.js') {
+    const p = url.searchParams.get('subpath') || url.searchParams.get('path');
+    if (p) {
+      if (p === 'start') pathname = '/oauth/start';
+      else if (p === 'complete') pathname = '/oauth/complete';
+      else if (p === 'logout') pathname = '/oauth/logout';
+      else if (p === 'health') pathname = '/health';
+      else pathname = p.startsWith('/') ? p : `/${p}`;
+    }
+  }
+  return pathname;
+}
+
 export default async function handler(req, res) {
   try {
     const proto = req.headers['x-forwarded-proto'] || 'http';
     const host = req.headers['x-forwarded-host'] || req.headers.host || 'localhost';
     const url = new URL(req.url, `${proto}://${host}`);
+    const pathname = resolvePath(req, url);
 
     if (req.method === 'OPTIONS') {
       res.writeHead(204, corsHeaders);
       return res.end();
     }
 
-    if (req.method === 'GET' && (url.pathname === '/health' || url.pathname === '/api/health')) {
+    if (req.method === 'GET' && (pathname === '/health' || pathname === '/api/health')) {
       return sendJson(res, 200, { ok: true });
     }
 
-    if (req.method === 'POST' && (url.pathname === '/oauth/start' || url.pathname === '/api/oauth/start')) {
+    if (req.method === 'POST' && (pathname === '/oauth/start' || pathname === '/api/oauth/start')) {
       const body = await readBody(req);
       return sendJson(res, 200, await startLogin(body?.callback_url));
     }
 
-    if (req.method === 'POST' && (url.pathname === '/oauth/complete' || url.pathname === '/api/oauth/complete')) {
+    if (req.method === 'POST' && (pathname === '/oauth/complete' || pathname === '/api/oauth/complete')) {
       const body = await readBody(req);
       return sendJson(res, 200, await completeLogin(body));
     }
@@ -200,7 +219,7 @@ export default async function handler(req, res) {
     const session = unseal(sessionToken, 'usos-session');
     const token = { key: session.oauth_token, secret: session.oauth_token_secret };
 
-    if (req.method === 'POST' && (url.pathname === '/oauth/logout' || url.pathname === '/api/oauth/logout')) {
+    if (req.method === 'POST' && (pathname === '/oauth/logout' || pathname === '/api/oauth/logout')) {
       const revokeUrl = new URL('services/oauth/revoke_token', USOS_BASE_URL).toString();
       const authorization = oauth.toHeader(
         oauth.authorize({ url: revokeUrl, method: 'POST', data: {} }, token)
@@ -210,12 +229,16 @@ export default async function handler(req, res) {
       return sendJson(res, 200, { ok: true });
     }
 
-    const apiPrefix = url.pathname.startsWith('/api/') ? '/api/' : '/';
-    let endpoint = url.pathname.slice(apiPrefix.length);
-    if (endpoint.startsWith('proxy/')) endpoint = endpoint.slice('proxy/'.length);
+    let endpoint = pathname;
+    if (endpoint.startsWith('/api/proxy/')) endpoint = endpoint.slice('/api/proxy/'.length);
+    else if (endpoint.startsWith('/api/')) endpoint = endpoint.slice('/api/'.length);
+    else if (endpoint.startsWith('/')) endpoint = endpoint.slice(1);
 
     if (req.method === 'GET' && allowedEndpoints.has(endpoint)) {
       const params = Object.fromEntries(url.searchParams);
+      delete params.subpath;
+      delete params.path;
+
       const targetUrl = new URL(endpoint, USOS_BASE_URL).toString();
       const authorization = oauth.toHeader(
         oauth.authorize({ url: targetUrl, method: 'GET', data: params }, token)
@@ -233,7 +256,7 @@ export default async function handler(req, res) {
       return res.end(data);
     }
 
-    return sendJson(res, 404, { error: `Not found: ${url.pathname}` });
+    return sendJson(res, 404, { error: `Not found: ${pathname}` });
   } catch (error) {
     const isSessionError = error instanceof Error && /session/i.test(error.message);
     return sendJson(res, isSessionError ? 401 : 502, {

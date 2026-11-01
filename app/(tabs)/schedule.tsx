@@ -81,8 +81,16 @@ function getMondayDate(d: Date): Date {
 
 function parseDateTime(dateStr: string): Date {
   if (!dateStr) return new Date();
-  const formatted = dateStr.includes('T') ? dateStr : dateStr.replace(' ', 'T');
-  return new Date(formatted);
+  try {
+    const match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?/);
+    if (match) {
+      const [, y, m, d, h, min, s] = match;
+      return new Date(Number(y), Number(m) - 1, Number(d), Number(h), Number(min), Number(s || 0));
+    }
+    const d = new Date(dateStr);
+    if (!isNaN(d.getTime())) return d;
+  } catch {}
+  return new Date();
 }
 
 function isSameDay(d1: Date, d2: Date): boolean {

@@ -3,9 +3,13 @@
   "outputDirectory": "dist",
   "framework": null,
   "rewrites": [
-    { "source": "/oauth/:path*", "destination": "/api/proxy" },
-    { "source": "/api/:path*", "destination": "/api/proxy" },
-    { "source": "/health", "destination": "/api/proxy" },
+    { "source": "/oauth/start", "destination": "/api/proxy?subpath=oauth/start" },
+    { "source": "/oauth/complete", "destination": "/api/proxy?subpath=oauth/complete" },
+    { "source": "/oauth/logout", "destination": "/api/proxy?subpath=oauth/logout" },
+    { "source": "/oauth/:path*", "destination": "/api/proxy?subpath=oauth/:path*" },
+    { "source": "/api/oauth/:path*", "destination": "/api/proxy?subpath=oauth/:path*" },
+    { "source": "/api/:path*", "destination": "/api/proxy?subpath=:path*" },
+    { "source": "/health", "destination": "/api/proxy?subpath=health" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

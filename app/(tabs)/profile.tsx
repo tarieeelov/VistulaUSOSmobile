@@ -8,6 +8,7 @@ import {
   Alert,
   ActivityIndicator,
   StyleSheet,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -71,51 +72,64 @@ export default function ProfileScreen() {
     loadProfile();
   }, [loadProfile]);
 
-  const handleClearCache = () => {
+  const handleClearCache = async () => {
+    const executeClear = async () => {
+      try {
+        setIsClearingCache(true);
+        await cacheClearAll();
+        if (Platform.OS === 'web' && typeof window !== 'undefined') {
+          window.alert('Offline data has been successfully removed.');
+        } else {
+          Alert.alert('Cache Cleared', 'Offline data has been successfully removed.');
+        }
+      } catch (err) {
+        console.warn('[Profile] Clear cache error:', err);
+      } finally {
+        setIsClearingCache(false);
+      }
+    };
+
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      if (window.confirm('Clear Offline Cache?\nThis will delete all stored timetable and grade cache on this device.')) {
+        await executeClear();
+      }
+      return;
+    }
+
     Alert.alert(
       'Clear Offline Cache',
       'This will delete all stored timetable and grade cache on this device. You will need an active connection to reload data.',
       [
         { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Clear Cache',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              setIsClearingCache(true);
-              await cacheClearAll();
-              Alert.alert('Cache Cleared', 'Offline data has been successfully removed.');
-            } catch (err) {
-              console.warn('[Profile] Clear cache error:', err);
-              Alert.alert('Error', 'Failed to clear cache.');
-            } finally {
-              setIsClearingCache(false);
-            }
-          },
-        },
+        { text: 'Clear Cache', style: 'destructive', onPress: executeClear },
       ]
     );
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    const executeLogout = async () => {
+      try {
+        await logout();
+        router.replace('/login');
+      } catch (err) {
+        console.warn('[Profile] Logout error:', err);
+        router.replace('/login');
+      }
+    };
+
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      if (window.confirm('Are you sure you want to log out from Vistula USOS?')) {
+        await executeLogout();
+      }
+      return;
+    }
+
     Alert.alert(
       'Log Out',
       'Are you sure you want to log out from Vistula USOS?',
       [
         { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Log Out',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await logout();
-              router.replace('/login');
-            } catch (err) {
-              console.warn('[Profile] Logout error:', err);
-              router.replace('/login');
-            }
-          },
-        },
+        { text: 'Log Out', style: 'destructive', onPress: executeLogout },
       ]
     );
   };

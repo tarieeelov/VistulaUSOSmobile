@@ -120,10 +120,11 @@ export const GradeRow: React.FC<GradeRowProps> = ({
  * Convert a hex color string to rgba with a given alpha.
  */
 function hexToRgba(hex: string, alpha: number): string {
+  if (!hex || !hex.startsWith('#')) return `rgba(107, 138, 255, ${alpha})`;
   const cleaned = hex.replace('#', '');
-  const r = parseInt(cleaned.substring(0, 2), 16);
-  const g = parseInt(cleaned.substring(2, 4), 16);
-  const b = parseInt(cleaned.substring(4, 6), 16);
+  const r = parseInt(cleaned.substring(0, 2), 16) || 0;
+  const g = parseInt(cleaned.substring(2, 4), 16) || 0;
+  const b = parseInt(cleaned.substring(4, 6), 16) || 0;
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 

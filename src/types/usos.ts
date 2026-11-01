@@ -63,7 +63,7 @@ export interface TermGrades {
   term_id: string;
   courses: Array<{
     course: CourseEdition;
-    grades: GradeEntry[];
+    grades: GradeEntry[] | Record<string, GradeEntry>;
   }>;
 }
 

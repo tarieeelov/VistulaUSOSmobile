@@ -155,13 +155,17 @@ export default function GradesScreen() {
 
     currentTermData.courses.forEach((item) => {
       let isPassed = false;
-      const gradesList = item.grades || [];
+      const gradesList: GradeEntry[] = Array.isArray(item.grades)
+        ? item.grades
+        : Object.values(item.grades || {});
 
-      gradesList.forEach((g: GradeEntry) => {
-        if (g.value_symbol) {
+      gradesList.forEach((g) => {
+        if (g && g.value_symbol) {
           const num = parseFloat(g.value_symbol);
           if (!isNaN(num)) {
-            numericGrades.push(num);
+            if (g.counts_into_average !== false) {
+              numericGrades.push(num);
+            }
             if (num >= 3.0) {
               isPassed = true;
             }
@@ -196,15 +200,17 @@ export default function GradesScreen() {
     const rows: FlattenedGradeItem[] = [];
     currentTermData.courses.forEach((item, courseIdx) => {
       const courseName = resolveL(item.course?.course_name) || 'Unknown Course';
-      const gradesList = item.grades || [];
+      const gradesList: GradeEntry[] = Array.isArray(item.grades)
+        ? item.grades
+        : Object.values(item.grades || {});
 
       if (gradesList.length > 0) {
         gradesList.forEach((gradeEntry, gradeIdx) => {
           rows.push({
-            id: `${item.course?.course_id || courseIdx}-${gradeEntry.exam_session_number}-${gradeIdx}`,
+            id: `${item.course?.course_id || courseIdx}-${gradeEntry?.exam_session_number || gradeIdx}-${gradeIdx}`,
             courseName,
-            grade: gradeEntry.value_symbol,
-            session: gradeEntry.exam_session_number || 1,
+            grade: gradeEntry?.value_symbol ?? null,
+            session: gradeEntry?.exam_session_number || 1,
           });
         });
       } else {

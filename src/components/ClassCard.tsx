@@ -18,23 +18,34 @@ export interface ClassCardProps {
   colors?: ThemeColors;
 }
 
+function parseTimestamp(dateStr: string): number {
+  if (!dateStr) return 0;
+  try {
+    const match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?/);
+    if (match) {
+      const [, y, m, d, h, min, s] = match;
+      return new Date(Number(y), Number(m) - 1, Number(d), Number(h), Number(min), Number(s || 0)).getTime();
+    }
+    const d = new Date(dateStr);
+    if (!isNaN(d.getTime())) return d.getTime();
+  } catch {}
+  return 0;
+}
+
 /**
  * Extracts a readable time string (HH:MM) from a date/time string.
  */
 function extractTime(timeStr: string): string {
   try {
     if (!timeStr) return '--:--';
-    // If it's "2026-10-22 08:00:00" or ISO format
     const parts = timeStr.split(' ');
     if (parts.length > 1 && parts[1].includes(':')) {
       const timeParts = parts[1].split(':');
       return `${timeParts[0]}:${timeParts[1]}`;
     }
-    const date = new Date(timeStr);
-    if (!isNaN(date.getTime())) {
-      const hours = date.getHours().toString().padStart(2, '0');
-      const minutes = date.getMinutes().toString().padStart(2, '0');
-      return `${hours}:${minutes}`;
+    const match = timeStr.match(/(\d{2}):(\d{2})/);
+    if (match) {
+      return `${match[1]}:${match[2]}`;
     }
     return timeStr.slice(0, 5);
   } catch {
@@ -94,8 +105,8 @@ export const ClassCard: React.FC<ClassCardProps> = ({ item, colors = DarkColors 
     if (typeof item.progress === 'number') return item.progress;
     try {
       const now = Date.now();
-      const start = new Date(item.start_time.replace(' ', 'T')).getTime();
-      const end = new Date(item.end_time.replace(' ', 'T')).getTime();
+      const start = parseTimestamp(item.start_time);
+      const end = parseTimestamp(item.end_time);
       const total = end - start;
       if (total <= 0) return 0;
       const elapsed = now - start;

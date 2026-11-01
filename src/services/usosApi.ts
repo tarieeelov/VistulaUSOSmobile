@@ -85,16 +85,33 @@ async function clearSession(): Promise<void> {
 
 async function readJson<T>(response: Response): Promise<T> {
   if (!response.ok) {
-    const message = await response.text();
+    let message = '';
+    try {
+      const err = await response.json();
+      message = err.error || err.message || JSON.stringify(err);
+    } catch {
+      message = await response.text().catch(() => '');
+    }
     throw new Error(message || `USOS proxy error (${response.status})`);
   }
   return (await response.json()) as T;
 }
 
 function parseCallback(url: string): { oauth_token: string; oauth_verifier: string } {
-  const parsed = Linking.parse(url);
-  const oauth_token = parsed.queryParams?.oauth_token;
-  const oauth_verifier = parsed.queryParams?.oauth_verifier;
+  let oauth_token: string | null = null;
+  let oauth_verifier: string | null = null;
+
+  try {
+    const urlObj = new URL(url);
+    oauth_token = urlObj.searchParams.get('oauth_token');
+    oauth_verifier = urlObj.searchParams.get('oauth_verifier');
+  } catch {}
+
+  if (!oauth_token || !oauth_verifier) {
+    const parsed = Linking.parse(url);
+    oauth_token = typeof parsed.queryParams?.oauth_token === 'string' ? parsed.queryParams.oauth_token : oauth_token;
+    oauth_verifier = typeof parsed.queryParams?.oauth_verifier === 'string' ? parsed.queryParams.oauth_verifier : oauth_verifier;
+  }
 
   if (typeof oauth_token !== 'string' || typeof oauth_verifier !== 'string') {
     throw new Error('The USOS callback did not contain a valid OAuth verifier.');
@@ -160,6 +177,15 @@ export async function login(): Promise<void> {
 export async function handleRedirectCallbackIfPresent(): Promise<boolean> {
   if (Platform.OS !== 'web' || typeof window === 'undefined') return false;
   const url = window.location.href;
+
+  // If user cancelled or error occurred in callback
+  if (url.includes('error=') || url.includes('error_description=')) {
+    if (typeof localStorage !== 'undefined') localStorage.removeItem('pending_login_session');
+    if (typeof sessionStorage !== 'undefined') sessionStorage.removeItem('pending_login_session');
+    window.history.replaceState({}, document.title, window.location.pathname);
+    return false;
+  }
+
   if (!url.includes('oauth_verifier=') || !url.includes('oauth_token=')) return false;
 
   const pendingSession =
@@ -189,6 +215,8 @@ export async function handleRedirectCallbackIfPresent(): Promise<boolean> {
     }
   } catch (err) {
     console.warn('[usosApi] Error handling redirect callback:', err);
+    if (typeof localStorage !== 'undefined') localStorage.removeItem('pending_login_session');
+    if (typeof sessionStorage !== 'undefined') sessionStorage.removeItem('pending_login_session');
   }
   return false;
 }
@@ -245,7 +273,16 @@ export async function usosFetch<T>(
   }
 
   if (!response.ok) {
-    const message = await response.text();
+    if (response.status === 401) {
+      await clearSession();
+    }
+    let message = '';
+    try {
+      const err = await response.json();
+      message = err.error || err.message || JSON.stringify(err);
+    } catch {
+      message = await response.text().catch(() => '');
+    }
     throw new Error(message || `USOS proxy error (${response.status})`);
   }
 
