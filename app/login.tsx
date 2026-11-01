@@ -64,11 +64,10 @@ export default function LoginScreen() {
       setErrorMessage(null);
       await login();
     } catch (err: unknown) {
+      setIsLoggingIn(false);
       const msg =
         err instanceof Error ? err.message : 'Authentication failed. Please try again.';
       setErrorMessage(msg);
-    } finally {
-      setIsLoggingIn(false);
     }
   };
 

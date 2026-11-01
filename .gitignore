@@ -9,6 +9,8 @@ node_modules/
 server/node_modules/
 .expo/
 dist/
+tarieeelov/
+.agents/
 .env
 .env*.local
 server/.env

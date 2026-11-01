@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Linking,
+  Platform,
 } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import {
@@ -68,6 +69,10 @@ export const QuickLinks: React.FC<QuickLinksProps> = ({ colors }) => {
 
   const handlePress = async (url: string) => {
     try {
+      if (Platform.OS === 'web' && typeof window !== 'undefined') {
+        window.open(url, '_blank', 'noopener,noreferrer');
+        return;
+      }
       await WebBrowser.openBrowserAsync(url, {
         toolbarColor: colors.background,
         controlsColor: colors.primary,

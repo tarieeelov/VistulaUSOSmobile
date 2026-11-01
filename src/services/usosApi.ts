@@ -115,8 +115,15 @@ export async function login(): Promise<void> {
   });
   const start = await readJson<AuthStartResponse>(startResponse);
 
-  if (Platform.OS === 'web' && typeof sessionStorage !== 'undefined') {
-    sessionStorage.setItem('pending_login_session', start.login_session);
+  if (Platform.OS === 'web' && typeof window !== 'undefined') {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('pending_login_session', start.login_session);
+    }
+    if (typeof sessionStorage !== 'undefined') {
+      sessionStorage.setItem('pending_login_session', start.login_session);
+    }
+    window.location.href = start.authorization_url;
+    return;
   }
 
   const browserResult = await WebBrowser.openAuthSessionAsync(
@@ -156,9 +163,8 @@ export async function handleRedirectCallbackIfPresent(): Promise<boolean> {
   if (!url.includes('oauth_verifier=') || !url.includes('oauth_token=')) return false;
 
   const pendingSession =
-    typeof sessionStorage !== 'undefined'
-      ? sessionStorage.getItem('pending_login_session')
-      : null;
+    (typeof localStorage !== 'undefined' ? localStorage.getItem('pending_login_session') : null) ||
+    (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('pending_login_session') : null);
   if (!pendingSession) return false;
 
   try {
@@ -176,7 +182,8 @@ export async function handleRedirectCallbackIfPresent(): Promise<boolean> {
     const completed = await readJson<StoredSession>(completionResponse);
     if (completed.session_token) {
       await saveSession(completed);
-      sessionStorage.removeItem('pending_login_session');
+      if (typeof localStorage !== 'undefined') localStorage.removeItem('pending_login_session');
+      if (typeof sessionStorage !== 'undefined') sessionStorage.removeItem('pending_login_session');
       window.history.replaceState({}, document.title, window.location.pathname);
       return true;
     }
