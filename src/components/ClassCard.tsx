@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MapPin, Clock } from 'lucide-react-native';
 import { ProcessedClass, resolveL } from '../types/usos';
 import {
@@ -16,6 +16,8 @@ import StatusBadge from './StatusBadge';
 export interface ClassCardProps {
   item: ProcessedClass;
   colors?: ThemeColors;
+  hideTime?: boolean;
+  onPress?: () => void;
 }
 
 function parseTimestamp(dateStr: string): number {
@@ -72,7 +74,12 @@ function hexToRgba(hex: string, alpha: number): string {
  * - Past classes: subdued opacity (0.5)
  * - Bento box aesthetic: generous padding, clean border, refined typography
  */
-export const ClassCard: React.FC<ClassCardProps> = ({ item, colors = DarkColors }) => {
+export const ClassCard: React.FC<ClassCardProps> = ({
+  item,
+  colors = DarkColors,
+  hideTime = false,
+  onPress,
+}) => {
   const courseName = resolveL(item.name) || 'Unknown Course';
   const classType = resolveL(item.classtype_name) || 'Class';
   const typeColor = getClassTypeColor(classType, colors);
@@ -82,6 +89,13 @@ export const ClassCard: React.FC<ClassCardProps> = ({ item, colors = DarkColors 
 
   const isPast = item.status === 'past';
   const isActive = item.status === 'active';
+
+  const durationMinutes = useMemo(() => {
+    const s = parseTimestamp(item.start_time);
+    const e = parseTimestamp(item.end_time);
+    const diff = Math.round((e - s) / 60000);
+    return diff > 0 ? diff : 90;
+  }, [item.start_time, item.end_time]);
 
   // Build location string
   const locationParts: string[] = [];
@@ -116,8 +130,11 @@ export const ClassCard: React.FC<ClassCardProps> = ({ item, colors = DarkColors 
     }
   }, [isActive, item.progress, item.start_time, item.end_time]);
 
+  const CardContainer = onPress ? TouchableOpacity : View;
+
   return (
-    <View
+    <CardContainer
+      {...(onPress ? { activeOpacity: 0.85, onPress } : {})}
       style={[
         styles.card,
         {
@@ -134,17 +151,25 @@ export const ClassCard: React.FC<ClassCardProps> = ({ item, colors = DarkColors 
       {/* Header: Type badge + Time */}
       <View style={styles.header}>
         <StatusBadge label={classType} color={typeColor} />
-        <View style={styles.timeContainer}>
-          <Clock
-            size={13}
-            color={colors.textTertiary}
-            strokeWidth={1.8}
-            style={styles.timeIcon}
-          />
-          <Text style={[styles.timeText, { color: colors.textSecondary }]}>
-            {startTime} – {endTime}
-          </Text>
-        </View>
+        {!hideTime ? (
+          <View style={styles.timeContainer}>
+            <Clock
+              size={13}
+              color={colors.textTertiary}
+              strokeWidth={1.8}
+              style={styles.timeIcon}
+            />
+            <Text style={[styles.timeText, { color: colors.textSecondary }]}>
+              {startTime} – {endTime}
+            </Text>
+          </View>
+        ) : (
+          <View style={[styles.durationBadge, { backgroundColor: colors.surfaceHighlight }]}>
+            <Text style={[styles.durationText, { color: colors.textTertiary }]}>
+              {durationMinutes} min
+            </Text>
+          </View>
+        )}
       </View>
 
       {/* Course name */}
@@ -210,7 +235,7 @@ export const ClassCard: React.FC<ClassCardProps> = ({ item, colors = DarkColors 
           </View>
         </View>
       )}
-    </View>
+    </CardContainer>
   );
 };
 
@@ -237,6 +262,16 @@ const styles = StyleSheet.create({
   timeText: {
     fontFamily: Fonts.medium,
     fontSize: FontSizes.sm,
+    letterSpacing: 0.2,
+  },
+  durationBadge: {
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 2,
+    borderRadius: BorderRadius.sm,
+  },
+  durationText: {
+    fontFamily: Fonts.medium,
+    fontSize: FontSizes.xs,
     letterSpacing: 0.2,
   },
   courseName: {

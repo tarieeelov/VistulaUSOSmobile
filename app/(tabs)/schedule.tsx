@@ -27,6 +27,9 @@ import { usosFetch } from '../../src/services/usosApi';
 import { getMockTimetable } from '../../src/services/mockData';
 import { DaySelector } from '../../src/components/DaySelector';
 import { ClassCard } from '../../src/components/ClassCard';
+import { TimelineItem } from '../../src/components/TimelineItem';
+import { WeeklyTable } from '../../src/components/WeeklyTable';
+import { ClassDetailModal } from '../../src/components/ClassDetailModal';
 import {
   BorderRadius,
   FontSizes,
@@ -158,6 +161,7 @@ export default function ScheduleScreen() {
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
   const [fromCache, setFromCache] = useState<boolean>(false);
+  const [selectedClassForModal, setSelectedClassForModal] = useState<ProcessedClass | null>(null);
 
   const currentWeekStart = useMemo(() => getWeekStart(selectedDate), [selectedDate]);
 
@@ -249,6 +253,33 @@ export default function ScheduleScreen() {
       return isSameDay(classDate, selectedDate);
     });
   }, [timetable, selectedDate]);
+
+  const isTodaySelected = useMemo(() => isSameDay(selectedDate, new Date()), [selectedDate]);
+
+  const currentTimeStr = useMemo(() => {
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2, '0');
+    const m = String(now.getMinutes()).padStart(2, '0');
+    return `${h}:${m}`;
+  }, []);
+
+  const currentTimeIndicatorIndex = useMemo(() => {
+    if (!isTodaySelected || filteredClasses.length === 0) return -1;
+    const now = new Date();
+    const nowMin = now.getHours() * 60 + now.getMinutes();
+
+    for (let i = 0; i < filteredClasses.length; i++) {
+      const cls = filteredClasses[i];
+      const match = cls.start_time?.match(/(\d{2}):(\d{2})/);
+      if (match) {
+        const startMin = Number(match[1]) * 60 + Number(match[2]);
+        if (cls.status === 'active' || startMin >= nowMin) {
+          return i;
+        }
+      }
+    }
+    return -1;
+  }, [isTodaySelected, filteredClasses]);
 
   // Group classes by all 7 days of the selected week for Week View
   const weekDaysData = useMemo(() => {
@@ -407,13 +438,23 @@ export default function ScheduleScreen() {
           </Text>
         </View>
       ) : viewMode === 'day' ? (
-        /* DAY VIEW */
+        /* DAY VIEW (Timeline) */
         <FlatList
           data={filteredClasses}
           keyExtractor={(item, index) =>
             `${item.course_id || 'course'}-${item.start_time}-${index}`
           }
-          renderItem={({ item }) => <ClassCard item={item} colors={colors} />}
+          renderItem={({ item, index }) => (
+            <TimelineItem
+              item={item}
+              colors={colors}
+              isFirst={index === 0}
+              isLast={index === filteredClasses.length - 1}
+              showCurrentTimeAbove={index === currentTimeIndicatorIndex}
+              currentTimeStr={currentTimeStr}
+              onPress={() => setSelectedClassForModal(item)}
+            />
+          )}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
           refreshControl={
@@ -452,9 +493,9 @@ export default function ScheduleScreen() {
           }
         />
       ) : (
-        /* WEEK VIEW (All 7 Days on One Screen) */
+        /* WEEK VIEW (Weekly Timetable Table without scroll and with time) */
         <ScrollView
-          contentContainerStyle={styles.weekListContent}
+          contentContainerStyle={styles.weekTableContainer}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl
@@ -465,155 +506,30 @@ export default function ScheduleScreen() {
             />
           }
         >
-          {timetable.length === 0 ? (
-            <View
-              style={[
-                styles.emptyCard,
-                {
-                  backgroundColor: colors.surface,
-                  borderColor: colors.border,
-                },
-              ]}
-            >
-              <View
-                style={[
-                  styles.emptyIconBadge,
-                  { backgroundColor: colors.surfaceHighlight },
-                ]}
-              >
-                <Calendar size={22} color={colors.textTertiary} strokeWidth={1.7} />
-              </View>
-              <Text style={[styles.emptyTitle, { color: colors.text }]}>
-                No classes this week
-              </Text>
-              <Text style={[styles.emptySubtitle, { color: colors.textTertiary }]}>
-                No lectures or labs are scheduled for this calendar week.
-              </Text>
-            </View>
-          ) : (
-            weekDaysData.map((day) => (
-              <View key={day.date.toISOString()} style={styles.weekDaySection}>
-                {/* Day Header Banner */}
-                <View
-                  style={[
-                    styles.weekDayHeader,
-                    {
-                      backgroundColor: colors.surfaceElevated,
-                      borderColor: day.isToday ? colors.primary : colors.border,
-                    },
-                    day.isToday && {
-                      borderLeftWidth: 3,
-                      borderLeftColor: colors.primary,
-                    },
-                  ]}
-                >
-                  <View style={styles.weekDayHeaderLeft}>
-                    <Text
-                      style={[
-                        styles.weekDayName,
-                        { color: day.isToday ? colors.primary : colors.text },
-                      ]}
-                    >
-                      {day.dayName}
-                    </Text>
-                    <Text
-                      style={[
-                        styles.weekDayDate,
-                        { color: colors.textTertiary },
-                      ]}
-                    >
-                      {day.formattedDate}
-                    </Text>
-
-                    {day.isToday && (
-                      <View
-                        style={[
-                          styles.todayTag,
-                          {
-                            backgroundColor: colors.primaryMuted,
-                          },
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            styles.todayTagText,
-                            { color: colors.primary },
-                          ]}
-                        >
-                          Today
-                        </Text>
-                      </View>
-                    )}
-                  </View>
-
-                  <TouchableOpacity
-                    style={[
-                      styles.dayBadgeButton,
-                      {
-                        backgroundColor: colors.surface,
-                        borderColor: colors.border,
-                      },
-                    ]}
-                    onPress={() => {
-                      setSelectedDate(day.date);
-                      setViewMode('day');
-                    }}
-                    activeOpacity={0.7}
-                    accessibilityLabel={`View ${day.dayName} only`}
-                  >
-                    <Text
-                      style={[
-                        styles.dayBadgeText,
-                        {
-                          color:
-                            day.classes.length > 0
-                              ? colors.text
-                              : colors.textTertiary,
-                        },
-                      ]}
-                    >
-                      {day.classes.length > 0
-                        ? `${day.classes.length} ${day.classes.length === 1 ? 'class' : 'classes'}`
-                        : 'Free'}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-
-                {/* Day's Classes */}
-                {day.classes.length > 0 ? (
-                  <View style={styles.weekDayClassesList}>
-                    {day.classes.map((cls, idx) => (
-                      <ClassCard
-                        key={`${cls.course_id || 'course'}-${cls.start_time}-${idx}`}
-                        item={cls}
-                        colors={colors}
-                      />
-                    ))}
-                  </View>
-                ) : (
-                  <View
-                    style={[
-                      styles.freeDayRow,
-                      {
-                        borderColor: colors.borderLight,
-                      },
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.freeDayText,
-                        { color: colors.textTertiary },
-                      ]}
-                    >
-                      No classes scheduled
-                    </Text>
-                  </View>
-                )}
-              </View>
-            ))
-          )}
+          <WeeklyTable
+            timetable={timetable}
+            selectedDate={selectedDate}
+            colors={colors}
+            onSelectDay={(date) => {
+              setSelectedDate(date);
+              setViewMode('day');
+            }}
+            onSelectClass={(item) => setSelectedClassForModal(item)}
+          />
         </ScrollView>
       )}
+
+      {/* Class Detail Modal */}
+      <ClassDetailModal
+        visible={Boolean(selectedClassForModal)}
+        item={selectedClassForModal}
+        colors={colors}
+        onClose={() => setSelectedClassForModal(null)}
+        onViewDay={(date) => {
+          setSelectedDate(date);
+          setViewMode('day');
+        }}
+      />
     </SafeAreaView>
   );
 }
@@ -686,14 +602,13 @@ const styles = StyleSheet.create({
     letterSpacing: 0.1,
   },
   listContent: {
-    paddingHorizontal: Spacing.base,
+    paddingHorizontal: Spacing.sm,
     paddingTop: Spacing.sm,
     paddingBottom: Spacing.xxl,
     flexGrow: 1,
   },
-  weekListContent: {
-    paddingHorizontal: Spacing.base,
-    paddingTop: Spacing.sm,
+  weekTableContainer: {
+    paddingTop: Spacing.xs,
     paddingBottom: Spacing.xxl,
   },
   weekDaySection: {
